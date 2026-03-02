@@ -1,4 +1,4 @@
-<![CDATA[<!-- SEO: SessionDeck – Claude Code 会话管理器、查看器、恢复工具。本地浏览、搜索、恢复 Claude Code 被压缩的上下文。 -->
+<!-- SEO: SessionDeck – Claude Code 会话管理器、查看器、恢复工具。本地浏览、搜索、恢复 Claude Code 被压缩的上下文。 -->
 
 <div align="center">
 
@@ -202,4 +202,3 @@ MIT License，见 [`LICENSE`](./LICENSE)
 **SessionDeck** — 看到 Claude Code 没有展示给你的一切。
 
 </div>
-]]>

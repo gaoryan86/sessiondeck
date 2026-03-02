@@ -1,4 +1,4 @@
-<![CDATA[<!-- SEO: SessionDeck – Claude Code session manager, viewer, recovery tool. Browse, search, recover compacted context from Claude Code sessions locally. -->
+<!-- SEO: SessionDeck – Claude Code session manager, viewer, recovery tool. Browse, search, recover compacted context from Claude Code sessions locally. -->
 
 <div align="center">
 
@@ -202,4 +202,3 @@ MIT License. See [`LICENSE`](./LICENSE).
 **SessionDeck** — See everything Claude Code doesn't show you.
 
 </div>
-]]>
