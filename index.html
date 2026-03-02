@@ -1638,14 +1638,17 @@
       if (!first || !first.key) return;
 
       m.selected.add(first.key);
-      await activateManagerSessionByKey(first.key);
-      renderManagerTable();
+      if (state.view === 'manager') {
+        await activateManagerSessionByKey(first.key);
+        renderManagerTable();
+        return;
+      }
 
-      if (state.view !== 'recovery') return;
-      if (!m.activeDetail?.sessionId || !SESSION_ID_RE.test(m.activeDetail.sessionId)) return;
+      const sid = String(first.sessionId || '').trim();
+      if (!SESSION_ID_RE.test(sid)) return;
 
-      state.recovery.sessionId = m.activeDetail.sessionId;
-      els.recoverySessionId.value = m.activeDetail.sessionId;
+      state.recovery.sessionId = sid;
+      els.recoverySessionId.value = sid;
       await loadRecoverySession();
 
       const firstEvent = state.recovery.filtered[0] || state.recovery.events[0];
@@ -2605,7 +2608,10 @@
       }
 
       renderRecoveryTable();
-      renderRecoveryPreview(null);
+      const activeRecoveryEvent = state.recovery.activeId != null
+        ? findRecoveryEventById(state.recovery.activeId)
+        : null;
+      renderRecoveryPreview(activeRecoveryEvent);
     }
 
     init();
