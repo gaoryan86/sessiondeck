@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Bilingual full README: `README.md` + `README.zh-CN.md`.
+- Cross-platform launcher scripts for Windows: `Session Deck.bat` and `Stop Session Deck.bat`.
+- macOS Spotlight launcher installer: `scripts/install-macos-launcher.sh`.
+
+### Changed
+
+- Renamed macOS launch scripts to `Session Deck.command` and `Stop Session Deck.command`.
+- Screenshot capture flow now supports `?demo=1` to auto-select a session and show richer preview states.
+- Refreshed screenshots with selected session + visible preview context.
+
 ## [0.1.0] - 2026-03-02
 
 ### Added

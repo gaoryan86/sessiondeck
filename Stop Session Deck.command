@@ -10,4 +10,4 @@ if [[ -z "${pid}" ]]; then
 fi
 
 kill "${pid}"
-echo "Stopped Web Manager (PID: ${pid})"
+echo "Stopped SessionDeck (PID: ${pid})"

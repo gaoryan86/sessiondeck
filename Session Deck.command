@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 PORT="${PORT:-47831}"
-LOG_FILE="/tmp/claude-session-web-manager.log"
+LOG_FILE="/tmp/sessiondeck.log"
 
 existing_pid="$(lsof -nP -iTCP:${PORT} -sTCP:LISTEN -t 2>/dev/null | head -n 1 || true)"
 if [[ -n "${existing_pid}" ]]; then
@@ -29,7 +29,7 @@ for _ in {1..30}; do
 done
 
 if [[ "${ready}" -ne 1 ]]; then
-  echo "Web Manager failed to start on 127.0.0.1:${PORT}"
+  echo "SessionDeck failed to start on 127.0.0.1:${PORT}"
   echo "Log:"
   tail -n 40 "${LOG_FILE}" || true
   exit 1

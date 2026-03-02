@@ -31,8 +31,8 @@ Thanks for contributing.
 ```bash
 node --check server.mjs
 bash -n run.sh
-bash -n "Start Web Manager.command"
-bash -n "Stop Web Manager.command"
+bash -n "Session Deck.command"
+bash -n "Stop Session Deck.command"
 ```
 
 3. Update `CHANGELOG.md` for user-facing changes.

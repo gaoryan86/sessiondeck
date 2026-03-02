@@ -1625,6 +1625,37 @@
       return candidate === 'recovery' ? 'recovery' : 'manager';
     }
 
+    function isDemoModeEnabled() {
+      const raw = String(new URLSearchParams(window.location.search).get('demo') || '').trim().toLowerCase();
+      return raw === '1' || raw === 'true' || raw === 'yes';
+    }
+
+    async function applyDemoStateIfNeeded() {
+      if (!isDemoModeEnabled()) return;
+
+      const m = state.manager;
+      const first = m.filtered[0] || m.sessions[0];
+      if (!first || !first.key) return;
+
+      m.selected.add(first.key);
+      await activateManagerSessionByKey(first.key);
+      renderManagerTable();
+
+      if (state.view !== 'recovery') return;
+      if (!m.activeDetail?.sessionId || !SESSION_ID_RE.test(m.activeDetail.sessionId)) return;
+
+      state.recovery.sessionId = m.activeDetail.sessionId;
+      els.recoverySessionId.value = m.activeDetail.sessionId;
+      await loadRecoverySession();
+
+      const firstEvent = state.recovery.filtered[0] || state.recovery.events[0];
+      if (firstEvent) {
+        state.recovery.activeId = firstEvent.id;
+        renderRecoveryTable();
+        renderRecoveryPreview(findRecoveryEventById(firstEvent.id));
+      }
+    }
+
     function renderRootPath() {
       const root = state.manager.rootPath || t('common.unknown');
       els.rootPath.textContent = t('manager.rootPath', { root });
@@ -2568,6 +2599,7 @@
 
       try {
         await reloadManagerAndRender();
+        await applyDemoStateIfNeeded();
       } catch (error) {
         els.sessionBody.innerHTML = `<tr><td colspan="9" class="empty">${esc(error.message)}</td></tr>`;
       }
