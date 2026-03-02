@@ -172,6 +172,8 @@
       text-transform: uppercase;
       letter-spacing: 0.62px;
       font-weight: 600;
+      opacity: 0.78;
+      transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease, opacity 120ms ease;
     }
 
     .tab-btn:hover {
@@ -180,10 +182,21 @@
     }
 
     .tab-btn.active {
-      background: var(--tab-active);
-      color: #ecfbff;
-      border-color: #7ea5b2;
-      box-shadow: inset 0 -2px 0 #7ea5b2;
+      color: #f3fcff;
+      opacity: 1;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.14);
+    }
+
+    .tab-btn[data-view="manager"].active {
+      background: linear-gradient(180deg, #123848 0%, #0d2330 100%);
+      border-color: #84bdd6;
+      box-shadow: inset 0 -2px 0 #93c8df, 0 0 0 1px rgba(131, 189, 214, 0.22);
+    }
+
+    .tab-btn[data-view="recovery"].active {
+      background: linear-gradient(180deg, #3a2c14 0%, #251d0f 100%);
+      border-color: #d2ac60;
+      box-shadow: inset 0 -2px 0 #d2ac60, 0 0 0 1px rgba(210, 172, 96, 0.2);
     }
 
     .view { display: none; }
@@ -1470,6 +1483,7 @@
         hideEmpty: true,
         focusTable: false,
         globalHits: [],
+        globalFilterKeys: null,
         globalSearchStatus: 'idle',
         globalSearchError: '',
         previewTab: 'summary',
@@ -1711,10 +1725,38 @@
       ].join(' ').toLowerCase();
     }
 
+    function buildGlobalFilterKeySet() {
+      const m = state.manager;
+      if (m.globalSearchStatus !== 'done') return null;
+      const hits = Array.isArray(m.globalHits) ? m.globalHits : [];
+      const keys = hits
+        .map((h) => String(h?.key || ''))
+        .filter(Boolean);
+      return new Set(keys);
+    }
+
+    function syncManagerActiveVisibility() {
+      const m = state.manager;
+      const visible = new Set(m.filtered.map((s) => s.key));
+      if (m.activeKey && !visible.has(m.activeKey)) {
+        m.activeKey = null;
+        m.activeDetail = null;
+      }
+    }
+
+    function applyManagerFilterAndRender() {
+      applyManagerFilter();
+      syncManagerActiveVisibility();
+      renderManagerTable();
+      renderManagerPreview(state.manager.activeDetail);
+    }
+
     function applyManagerFilter() {
       const m = state.manager;
       const q = m.query.trim().toLowerCase();
+      const globalKeySet = m.globalFilterKeys;
       m.filtered = m.sessions.filter((s) => {
+        if (globalKeySet && !globalKeySet.has(s.key)) return false;
         if (m.hideEmpty && !hasReadablePrompt(s)) return false;
         if (!q) return true;
         return managerSearchable(s).includes(q);
@@ -2035,9 +2077,17 @@
     async function reloadManagerAndRender() {
       const m = state.manager;
       await fetchSessions();
-      applyManagerFilter();
 
       const validKeys = new Set(m.sessions.map((s) => s.key));
+      if (m.globalSearchStatus === 'done') {
+        m.globalHits = m.globalHits.filter((h) => validKeys.has(String(h?.key || '')));
+        renderGlobalSearchInfo();
+        renderGlobalSearchResults();
+      }
+
+      m.globalFilterKeys = buildGlobalFilterKeySet();
+      applyManagerFilter();
+      syncManagerActiveVisibility();
       m.selected = new Set([...m.selected].filter((k) => validKeys.has(k)));
 
       if (m.activeKey && !validKeys.has(m.activeKey)) {
@@ -2382,14 +2432,12 @@
 
       els.searchInput.addEventListener('input', (e) => {
         m.query = e.target.value || '';
-        applyManagerFilter();
-        renderManagerTable();
+        applyManagerFilterAndRender();
       });
 
       els.hideEmptyToggle.addEventListener('change', (e) => {
         m.hideEmpty = Boolean(e.target.checked);
-        applyManagerFilter();
-        renderManagerTable();
+        applyManagerFilterAndRender();
       });
 
       els.refreshBtn.addEventListener('click', async () => {
@@ -2399,8 +2447,7 @@
       els.clearBtn.addEventListener('click', () => {
         m.query = '';
         els.searchInput.value = '';
-        applyManagerFilter();
-        renderManagerTable();
+        applyManagerFilterAndRender();
       });
 
       els.selectVisibleBtn.addEventListener('click', () => {
@@ -2443,15 +2490,19 @@
           const res = await fetchGlobalSearch(q, Boolean(els.globalSearchSubagentsToggle.checked), 200);
           m.globalHits = Array.isArray(res.hits) ? res.hits : [];
           m.globalSearchStatus = 'done';
+          m.globalFilterKeys = buildGlobalFilterKeySet();
           m.globalSearchError = '';
           renderGlobalSearchInfo();
           renderGlobalSearchResults();
+          applyManagerFilterAndRender();
         } catch (error) {
           m.globalSearchStatus = 'error';
           m.globalSearchError = error.message;
+          m.globalFilterKeys = null;
           renderGlobalSearchInfo();
           m.globalHits = [];
           renderGlobalSearchResults();
+          applyManagerFilterAndRender();
         } finally {
           els.globalSearchBtn.disabled = false;
         }
@@ -2459,11 +2510,13 @@
 
       els.globalSearchClearBtn.addEventListener('click', () => {
         m.globalHits = [];
+        m.globalFilterKeys = null;
         els.globalSearchInput.value = '';
         m.globalSearchStatus = 'idle';
         m.globalSearchError = '';
         renderGlobalSearchInfo();
         renderGlobalSearchResults();
+        applyManagerFilterAndRender();
       });
 
       els.globalSearchBody.addEventListener('click', async (event) => {

@@ -24,6 +24,7 @@ pnpm-debug.log*
 # Build / test artifacts
 coverage/
 dist/
+test-results/
 
 # Local snapshots (may contain local paths / WIP UI states)
 snapshots/
