@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2026-03-02
+
+### Fixed
+
+- Global Search now filters the Session Manager table by matched session keys.
+- Clearing Global Search results now restores the Session Manager table correctly.
+- Manager preview is now cleared when active session is no longer visible after filtering.
+- Demo Recovery screenshot flow now preserves `Event Detail` content.
+
+### Changed
+
+- Improved active tab contrast for `Session Manager` and `Recovery (Read-only)` to make selected state more obvious.
+- Refreshed screenshots after loading the first session to ensure consistent example states.
+- Added `test-results/` to `.gitignore` to prevent accidental test artifact commits.
+
 ## [0.1.2] - 2026-03-02
 
 ### Fixed

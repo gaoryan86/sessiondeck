@@ -103,7 +103,7 @@ PORT=47840 CLAUDE_PROJECTS="$HOME/.claude/projects" ./run.sh
 
 ## 项目状态
 
-- 当前目标版本：`v0.1.2`
+- 当前目标版本：`v0.1.3`
 - 发布记录见 [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## 贡献
