@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2026-03-02
+
+### Fixed
+
+- macOS launcher now resolves Node.js reliably when started from Finder (non-interactive PATH).
+
+### Changed
+
+- Replaced Recovery screenshot with a sanitized view (no session content).
+
 ## [0.1.1] - 2026-03-02
 
 ### Added

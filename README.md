@@ -103,7 +103,7 @@ PORT=47840 CLAUDE_PROJECTS="$HOME/.claude/projects" ./run.sh
 
 ## Project Status
 
-- Current release target: `v0.1.1`
+- Current release target: `v0.1.2`
 - See [`CHANGELOG.md`](./CHANGELOG.md) for release history.
 
 ## Contributing
