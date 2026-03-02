@@ -3,7 +3,7 @@
 ## 0) Go to project root
 
 ```bash
-cd "/Users/Ryansmac/Vibe code projects/Claude-Session-Web-Manager"
+cd "/Users/Ryansmac/Vibe code projects/CC-Session-Deck"
 ```
 
 ## 1) Optional but recommended: set your git identity (avoid exposing local hostname email)
