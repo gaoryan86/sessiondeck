@@ -64,6 +64,16 @@ cd "/path/to/SessionDeck"
 
 Server default URL: <http://127.0.0.1:47831>
 
+## Screenshots
+
+### Session Manager
+
+![Session Manager](docs/images/session-manager.png)
+
+### Recovery (Read-only)
+
+![Recovery View](docs/images/recovery-view.png)
+
 ## Configuration
 
 - `PORT` (default `47831`)

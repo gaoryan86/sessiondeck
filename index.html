@@ -1618,6 +1618,13 @@
       }
     }
 
+    function resolveInitialView() {
+      const queryView = new URLSearchParams(window.location.search).get('view');
+      const hashView = String(window.location.hash || '').replace(/^#/, '');
+      const candidate = String(queryView || hashView || '').trim().toLowerCase();
+      return candidate === 'recovery' ? 'recovery' : 'manager';
+    }
+
     function renderRootPath() {
       const root = state.manager.rootPath || t('common.unknown');
       els.rootPath.textContent = t('manager.rootPath', { root });
@@ -2552,6 +2559,7 @@
       bindManagerEvents();
       bindRecoveryEvents();
       applyI18n();
+      switchView(resolveInitialView());
 
       els.hideEmptyToggle.checked = state.manager.hideEmpty;
       els.recoveryPreOnlyToggle.checked = state.recovery.preOnly;
