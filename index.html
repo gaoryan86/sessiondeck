@@ -1,0 +1,2574 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SessionDeck</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --bg: #050607;
+      --bg-2: #070b0d;
+      --panel: #0a1014;
+      --panel-2: #0d151a;
+      --panel-3: #0a0f12;
+      --border: #253842;
+      --text: #e6f3f9;
+      --muted: #85a3ad;
+      --accent: #6f9dac;
+      --accent-soft: #1a2b33;
+      --danger: #ff4d4f;
+      --danger-soft: #311114;
+      --row-hover: #0c1e26;
+      --selected: #11323f;
+      --tab: #0a1014;
+      --tab-active: #0f232e;
+      --compact: #ffbf00;
+      --pre: #8fb6c2;
+      --ink-soft: #d6edf7;
+      --shadow: 0 16px 36px rgba(0, 0, 0, 0.46);
+      --grid: rgba(120, 147, 158, 0.06);
+      --line-hot: #ffbf00;
+      --line-live: #ff4d4f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Space Grotesk", "Avenir Next", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background:
+        radial-gradient(900px 420px at 85% -8%, rgba(255, 191, 0, 0.14) 0%, transparent 52%),
+        radial-gradient(1200px 760px at -8% 108%, rgba(99, 128, 140, 0.07) 0%, transparent 60%),
+        repeating-linear-gradient(0deg, transparent 0 37px, var(--grid) 37px 38px),
+        repeating-linear-gradient(90deg, transparent 0 37px, var(--grid) 37px 38px),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+      letter-spacing: 0.1px;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255, 191, 0, 0.05) 0, transparent 70px),
+        linear-gradient(90deg, transparent 0 70%, rgba(111, 157, 172, 0.04) 100%);
+      mix-blend-mode: screen;
+      z-index: -1;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px);
+      opacity: 0.07;
+      z-index: -1;
+    }
+
+    *::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: #060d11;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: #2e434c;
+      border: 1px solid #1d2f36;
+      border-radius: 3px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: #3b5560;
+    }
+
+    .page {
+      max-width: 1960px;
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tabbar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      box-shadow: var(--shadow);
+      width: fit-content;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #7d2a2e;
+      background: #2b0e12;
+      color: #ffd2d7;
+      font-size: 10px;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      border-radius: 3px;
+      padding: 6px 8px;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #ff4d4f;
+      box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.72);
+      animation: livePulse 1.4s infinite;
+    }
+
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.72); }
+      70% { box-shadow: 0 0 0 9px rgba(255, 77, 79, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
+    }
+
+    .locale-btn {
+      min-width: 72px;
+    }
+
+    .tab-btn {
+      border: 1px solid #3a5059;
+      background: var(--tab);
+      color: #c0d0d7;
+      padding: 7px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.62px;
+      font-weight: 600;
+    }
+
+    .tab-btn:hover {
+      border-color: #5a737d;
+      color: #eef5f8;
+    }
+
+    .tab-btn.active {
+      background: var(--tab-active);
+      color: #ecfbff;
+      border-color: #7ea5b2;
+      box-shadow: inset 0 -2px 0 #7ea5b2;
+    }
+
+    .view { display: none; }
+    .view.active {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .toolbar {
+      background: color-mix(in srgb, var(--panel) 96%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toolbar::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #6f9dac 0%, #6f9dac 35%, #d0a867 72%, #d06f74 100%);
+      opacity: 0.86;
+      pointer-events: none;
+    }
+
+    .title {
+      font-family: "Sora", "Space Grotesk", sans-serif;
+      font-size: 25px;
+      font-weight: 650;
+      letter-spacing: 0.25px;
+      line-height: 1.04;
+      color: #f3fbff;
+      text-transform: uppercase;
+      text-shadow: 0 0 14px rgba(111, 157, 172, 0.09);
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.34px;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      word-break: break-all;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .controls-left {
+      flex: 1 1 420px;
+      min-width: 280px;
+    }
+
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      background: #0b1217;
+      color: var(--text);
+      border: 1px solid #3a5059;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .input:focus,
+    .select:focus {
+      border-color: #7ea5b2;
+      box-shadow: 0 0 0 2px rgba(126, 165, 178, 0.16);
+    }
+
+    .btn {
+      border: 1px solid #425963;
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 4px;
+      padding: 7px 11px;
+      cursor: pointer;
+      font-size: 11px;
+      white-space: nowrap;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      background: #1a262d;
+      border-color: #637c86;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-danger {
+      border-color: #7f2d33;
+      background: var(--danger-soft);
+      color: #ffd4d8;
+    }
+
+    .btn-accent {
+      border-color: #5e7983;
+      background: var(--accent-soft);
+      color: #d5e4ea;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 9px;
+      border: 1px solid #3a5059;
+      background: #0f171d;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #bcced6;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      margin: 0;
+      accent-color: #7ea5b2;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(860px, 1.75fr) minmax(500px, 1.05fr);
+      gap: 12px;
+      min-height: 64vh;
+      height: calc(100vh - 220px);
+    }
+
+    .manager-layout.focus-table,
+    .recovery-layout.focus-table {
+      grid-template-columns: 1fr;
+    }
+
+    .manager-layout.focus-table .manager-side-panel,
+    .recovery-layout.focus-table .recovery-side-panel {
+      display: none;
+    }
+
+    .panel {
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-top: 1px solid rgba(111, 157, 172, 0.26);
+      opacity: 0.65;
+    }
+
+    .panel-head {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 7px;
+      font-size: 11px;
+      color: #b7c4ca;
+      flex-wrap: wrap;
+      background: linear-gradient(180deg, rgba(111, 157, 172, 0.07) 0%, rgba(0, 0, 0, 0) 100%);
+      text-transform: uppercase;
+      letter-spacing: 0.36px;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      min-height: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1080px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #314751;
+      padding: 6px 6px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 11px;
+      line-height: 1.22;
+    }
+
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4) {
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      color: #d0dce2;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #111a20;
+      color: #c4d2d8;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.56px;
+      border-bottom: 1px solid #45616d;
+    }
+
+    tr.data-row { cursor: pointer; }
+    tr.data-row:hover { background: var(--row-hover); }
+    tr.data-row.active {
+      background: var(--selected);
+      box-shadow: inset 2px 0 0 #7ea5b2;
+    }
+
+    .mono {
+      font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: 0.1px;
+    }
+
+    .ellipsis {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 400px;
+      line-height: 1.25;
+      color: var(--ink-soft);
+    }
+
+    .one-line {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 460px;
+    }
+
+    .project {
+      max-width: 230px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #b4c4cb;
+    }
+
+    .preview {
+      padding: 10px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-height: 0;
+      align-content: start;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .meta-item {
+      background: #0f171d;
+      border: 1px solid #314b56;
+      border-radius: 4px;
+      padding: 6px 8px;
+      min-height: 44px;
+      display: grid;
+      align-content: start;
+      gap: 3px;
+    }
+
+    .meta-item.wide { grid-column: 1 / -1; }
+
+    .meta-label {
+      color: #b0c1c9;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .meta-value {
+      line-height: 1.24;
+      word-break: break-word;
+      font-size: 12px;
+    }
+
+    .section {
+      background: #0e151b;
+      border: 1px solid #314b56;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .section summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 6px 8px;
+      font-size: 11px;
+      color: #bdcbd1;
+      border-bottom: 1px solid #314b56;
+      user-select: none;
+      text-transform: uppercase;
+      letter-spacing: 0.36px;
+    }
+
+    .section summary::-webkit-details-marker { display: none; }
+
+    .section .section-body {
+      padding: 7px 8px;
+      font-size: 12px;
+      line-height: 1.38;
+      word-break: break-word;
+      white-space: pre-wrap;
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .section.compact .section-body { max-height: 96px; }
+
+    .hint-box {
+      border: 1px dashed #4b6570;
+      color: #c1d0d6;
+      border-radius: 4px;
+      padding: 7px 8px;
+      font-size: 11px;
+      background: rgba(22, 36, 43, 0.52);
+    }
+
+    .muted { color: var(--muted); }
+
+    #globalSearchInfo {
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      color: #b8c9d0;
+      letter-spacing: 0.24px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid #314b56;
+      background: #0f171d;
+      color: #cad7dc;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 10px;
+      letter-spacing: 0.32px;
+      text-transform: uppercase;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    #countPill {
+      border-color: #56707a;
+      box-shadow: inset 0 -1px 0 rgba(111, 157, 172, 0.3);
+    }
+
+    #selectedPill {
+      border-color: #7b5b18;
+      color: #ffe9b8;
+      background: #1e1909;
+      box-shadow: inset 0 -1px 0 rgba(255, 191, 0, 0.5);
+    }
+
+    #recoveryCountPill {
+      border-color: #56707a;
+      box-shadow: inset 0 -1px 0 rgba(111, 157, 172, 0.3);
+    }
+
+    #recoveryCompactPill {
+      border-color: #7e2f35;
+      color: #ffd7dd;
+      background: #2a1014;
+      box-shadow: inset 0 -1px 0 rgba(255, 77, 79, 0.55);
+    }
+
+    #recoveryPrePill {
+      border-color: #7b5b18;
+      color: #ffe9b8;
+      background: #1e1909;
+      box-shadow: inset 0 -1px 0 rgba(255, 191, 0, 0.5);
+    }
+
+    .list {
+      margin: 0;
+      padding-left: 16px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .list li {
+      line-height: 1.35;
+      word-break: break-word;
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 16px;
+      color: #b5c4cb;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 3px;
+      border: 1px solid #4c6772;
+      background: #132028;
+      color: #ced9de;
+      font-size: 10px;
+      padding: 1px 6px 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.36px;
+      line-height: 1.5;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .badge.compact {
+      border-color: #8f6511;
+      background: #2d240a;
+      color: #ffd884;
+    }
+
+    .badge.pre {
+      border-color: #4b6f7e;
+      background: #192931;
+      color: #c4d8df;
+    }
+
+    .recovery-toolbar-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 480px) 1fr;
+      gap: 10px;
+    }
+
+    .recovery-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .recovery-filters .controls-left {
+      flex: 1 1 350px;
+    }
+
+    .recovery-table table { min-width: 880px; }
+
+    .event-text {
+      max-width: 520px;
+      line-height: 1.25;
+      color: var(--ink-soft);
+    }
+
+    .event-text .one-line {
+      max-width: 520px;
+    }
+
+    .danger-note {
+      color: #ffd0d0;
+      background: #2a1114;
+      border: 1px solid #7f2d33;
+      border-radius: 4px;
+      padding: 7px 8px;
+      font-size: 11px;
+    }
+
+    .hidden { display: none !important; }
+
+    .subtable-wrap {
+      overflow: auto;
+      max-height: 240px;
+    }
+
+    .subtable-wrap table {
+      min-width: 920px;
+    }
+
+    .tiny {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.4px;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .name-cell {
+      display: grid;
+      gap: 2px;
+      max-width: 180px;
+    }
+
+    .name-main {
+      color: var(--ink-soft);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meta-editor {
+      display: grid;
+      gap: 6px;
+    }
+
+    .meta-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .manager-preview {
+      display: grid;
+      gap: 9px;
+      align-content: start;
+      min-height: 0;
+    }
+
+    .manager-hero {
+      border: 1px solid #314b56;
+      background: linear-gradient(180deg, rgba(8, 19, 25, 0.98) 0%, rgba(8, 14, 18, 0.95) 100%);
+      border-radius: 4px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      box-shadow: inset 0 -2px 0 rgba(111, 157, 172, 0.42);
+    }
+
+    .manager-hero-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .manager-hero-title {
+      font-size: 13px;
+      color: #c7d3d8;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .manager-kpis {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .manager-kpi {
+      border: 1px solid #415f6b;
+      background: #0f1d25;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 10px;
+      color: #d0dce2;
+      letter-spacing: 0.32px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .manager-kpi:nth-child(1) {
+      border-color: #7b5b18;
+      background: #1f1707;
+      color: #ffe9b8;
+    }
+
+    .manager-kpi:nth-child(2) {
+      border-color: #4b6672;
+      background: #0f1d25;
+      color: #d0e0e6;
+    }
+
+    .manager-kpi:nth-child(3) {
+      border-color: #7e2f35;
+      background: #2a1014;
+      color: #ffd7dd;
+    }
+
+    .manager-session-id {
+      font-size: 18px;
+      line-height: 1.14;
+      color: #f6fcff;
+      word-break: break-all;
+      letter-spacing: 0.3px;
+      font-variant-ligatures: none;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .manager-project-row {
+      display: grid;
+      gap: 4px;
+    }
+
+    .manager-project-path {
+      font-size: 12px;
+      color: #c8d5db;
+      line-height: 1.35;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .manager-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      border: 1px solid #2c434d;
+      background: #0d171d;
+      border-radius: 4px;
+      padding: 6px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .manager-tab {
+      border: 1px solid #2c434d;
+      background: #121f26;
+      color: #bdd0d7;
+      border-radius: 3px;
+      padding: 6px 10px;
+      font-size: 10px;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .manager-tab:hover {
+      border-color: #5d7782;
+      color: #e2ebef;
+    }
+
+    .manager-tab.active {
+      background: #1a2b35;
+      border-color: #7ea5b2;
+      color: #ecf4f7;
+      box-shadow: inset 0 -2px 0 #7ea5b2;
+    }
+
+    .manager-pane {
+      display: none;
+      gap: 8px;
+      align-content: start;
+      min-height: 0;
+    }
+
+    .manager-pane.active { display: grid; }
+
+    .manager-card {
+      background: #0d161b;
+      border: 1px solid #314b56;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .manager-card-title {
+      font-size: 11px;
+      color: #b4c9d2;
+      text-transform: uppercase;
+      letter-spacing: 0.65px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #314b56;
+      background: #132028;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .manager-card-body {
+      padding: 9px 10px;
+      font-size: 13px;
+      line-height: 1.42;
+      word-break: break-word;
+      white-space: pre-wrap;
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .manager-card-body.summary {
+      max-height: 160px;
+      font-size: 13px;
+    }
+
+    .manager-card-body.prompt {
+      max-height: 200px;
+    }
+
+    .manager-msg-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 7px;
+      white-space: normal;
+    }
+
+    .manager-msg-item {
+      border: 1px solid #314b56;
+      border-radius: 4px;
+      padding: 8px;
+      background: #101a20;
+      display: grid;
+      gap: 4px;
+      white-space: normal;
+    }
+
+    .manager-msg-item .muted {
+      font-size: 11px;
+      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+
+    .manager-meta-pane {
+      display: grid;
+      gap: 8px;
+    }
+
+    .manager-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .manager-meta-grid .meta-item {
+      min-height: 0;
+    }
+
+    .manager-side-panel .empty {
+      border: 1px dashed #4f6770;
+      border-radius: 4px;
+      background: rgba(16, 27, 34, 0.5);
+    }
+
+    @media (max-width: 1400px) {
+      .layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 60vh;
+      }
+
+      table { min-width: 980px; }
+      .recovery-toolbar-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 860px) {
+      .page {
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .topbar-right {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .title {
+        font-size: 20px;
+      }
+
+      .toolbar {
+        padding: 10px;
+      }
+
+      .meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .manager-meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .manager-session-id {
+        font-size: 16px;
+      }
+
+      table { min-width: 840px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="tabbar">
+        <button class="tab-btn active" data-view="manager" data-i18n="tab.manager">Session Manager</button>
+        <button class="tab-btn" data-view="recovery" data-i18n="tab.recovery">Recovery (Read-only)</button>
+      </div>
+      <div class="topbar-right">
+        <div class="live-badge"><span class="live-dot"></span><span data-i18n="common.live">LIVE</span></div>
+        <button id="localeToggleBtn" class="btn locale-btn">中文</button>
+      </div>
+    </div>
+
+    <section id="view-manager" class="view active">
+      <section class="toolbar">
+        <div>
+          <div class="title" data-i18n="manager.title">SessionDeck</div>
+          <div class="sub" id="rootPath">Loading...</div>
+        </div>
+        <div class="controls">
+          <div class="controls-left">
+            <input id="searchInput" class="input" data-i18n-placeholder="manager.searchPlaceholder" placeholder="Filter by summary / first prompt / last prompt / project / session ID" />
+          </div>
+          <div class="controls-right">
+            <label class="toggle" data-i18n-title="manager.hideEmptyTitle" title="Hide sessions with empty first/last/summary">
+              <input id="hideEmptyToggle" type="checkbox" checked />
+              <span data-i18n="manager.hideEmpty">Hide empty sessions</span>
+            </label>
+            <button id="refreshBtn" class="btn" data-i18n="btn.refresh">Refresh</button>
+            <button id="clearBtn" class="btn" data-i18n="btn.clearFilter">Clear filter</button>
+            <button id="selectVisibleBtn" class="btn" data-i18n="btn.selectVisible">Select visible</button>
+            <button id="batchExportBtn" class="btn" data-i18n="btn.batchExport">Batch export</button>
+            <button id="rebuildIndexBtn" class="btn" data-i18n="btn.rebuildIndex">Rebuild index</button>
+            <button id="openRecoveryBtn" class="btn btn-accent" disabled data-i18n="btn.openRecovery">Open in Recovery</button>
+            <button id="deleteBtn" class="btn btn-danger" disabled data-i18n="btn.deleteSelected">Delete selected</button>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="controls-left">
+            <input id="globalSearchInput" class="input" data-i18n-placeholder="manager.globalSearchPlaceholder" placeholder="Search full text across all sessions" />
+          </div>
+          <div class="controls-right">
+            <label class="toggle">
+              <input id="globalSearchSubagentsToggle" type="checkbox" />
+              <span data-i18n="common.includeSubagents">Include subagents</span>
+            </label>
+            <button id="globalSearchBtn" class="btn" data-i18n="btn.globalSearch">Global search</button>
+            <button id="globalSearchClearBtn" class="btn" data-i18n="btn.clearResults">Clear results</button>
+            <span class="muted" id="globalSearchInfo">Not searched</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="layout manager-layout" id="managerLayout">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span class="pill" id="countPill">0 sessions</span>
+              <span class="pill" id="selectedPill">0 selected</span>
+            </div>
+            <div class="controls-right">
+              <span class="muted" data-i18n="manager.listHint">List prioritizes Project + Summary, then first/last prompts</span>
+              <button id="managerFocusBtn" class="btn" data-i18n="btn.focusTable">Focus table</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+              <tr>
+                <th style="width:42px" data-i18n="table.select">Sel</th>
+                <th style="width:46px" data-i18n="table.no">No</th>
+                <th style="width:138px" data-i18n="table.modified">Modified</th>
+                <th style="width:55px" data-i18n="table.msgs">Msgs</th>
+                <th style="width:180px" data-i18n="table.name">Name</th>
+                <th style="width:220px" data-i18n="table.project">Project</th>
+                <th style="width:230px" data-i18n="table.summary">Summary</th>
+                <th style="width:230px" data-i18n="table.firstPrompt">First Prompt</th>
+                <th style="width:230px" data-i18n="table.lastPrompt">Last Prompt</th>
+              </tr>
+              </thead>
+              <tbody id="sessionBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel manager-side-panel">
+          <div class="panel-head">
+            <div data-i18n="manager.previewTitle">Session Preview</div>
+            <div class="muted" data-i18n="manager.previewHint">Click any row on the left</div>
+          </div>
+          <div id="preview" class="preview">
+            <div class="empty" data-i18n="manager.previewEmpty">Select a session on the left to preview details and recent user messages.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="globalSearchPanel">
+        <div class="panel-head">
+          <div data-i18n="manager.globalResultsTitle">Global Search Results</div>
+          <div class="muted" data-i18n="manager.globalResultsHint">Click a result row to jump to that session</div>
+        </div>
+        <div class="subtable-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:160px">Time</th>
+                <th style="width:90px">Role</th>
+                <th style="width:100px">Source</th>
+                <th style="width:100px">Session</th>
+                <th>Text</th>
+              </tr>
+            </thead>
+            <tbody id="globalSearchBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="view-recovery" class="view">
+      <section class="toolbar">
+        <div>
+          <div class="title" data-i18n="recovery.title">Session Recovery (Read-only)</div>
+          <div class="sub" data-i18n="recovery.subtitle">Read main + subagent logs. Defaults to pre-compact context. Source files stay untouched.</div>
+        </div>
+
+        <div class="recovery-toolbar-grid">
+          <div>
+            <input id="recoverySessionId" class="input mono" data-i18n-placeholder="recovery.sessionIdPlaceholder" placeholder="Enter Session ID, e.g. 8450d97a-a209-46c0-9834-689f02871525" />
+          </div>
+          <div class="controls-right">
+            <button id="recoveryLoadBtn" class="btn btn-accent" data-i18n="btn.loadSession">Load Session</button>
+            <button id="recoveryLocateCompactBtn" class="btn" data-i18n="btn.locateCompact">Locate compact</button>
+            <button id="recoveryExportBtn" class="btn" data-i18n="btn.exportMarkdown">Export current view Markdown</button>
+          </div>
+        </div>
+
+        <div class="recovery-filters">
+          <div class="controls-left">
+            <input id="recoverySearchInput" class="input" data-i18n-placeholder="recovery.searchPlaceholder" placeholder="Search: keyword / phrase / filename" />
+          </div>
+          <select id="recoveryRoleSelect" class="select" style="width:140px">
+            <option value="all" data-i18n="recovery.roleAll">All roles</option>
+            <option value="user" data-i18n="recovery.roleUser">USER only</option>
+            <option value="assistant" data-i18n="recovery.roleAssistant">ASSISTANT only</option>
+            <option value="system" data-i18n="recovery.roleSystem">SYSTEM only</option>
+          </select>
+          <label class="toggle">
+            <input id="recoveryPreOnlyToggle" type="checkbox" checked />
+            <span data-i18n="recovery.preOnly">Pre-compact only</span>
+          </label>
+          <label class="toggle">
+            <input id="recoveryIncludeSubagentsToggle" type="checkbox" checked />
+            <span data-i18n="common.includeSubagents">Include subagents</span>
+          </label>
+          <button id="recoveryClearFilterBtn" class="btn" data-i18n="btn.clearFilters">Clear filters</button>
+        </div>
+      </section>
+
+      <section class="layout recovery-layout" id="recoveryLayout">
+        <div class="panel recovery-table">
+          <div class="panel-head">
+            <div>
+              <span class="pill" id="recoveryCountPill">0 visible</span>
+              <span class="pill" id="recoveryCompactPill">0 compact</span>
+              <span class="pill" id="recoveryPrePill">0 pre-compact</span>
+            </div>
+            <div class="controls-right">
+              <span class="muted" id="recoveryStatsHint">Enter Session ID and click Load Session</span>
+              <button id="recoveryFocusBtn" class="btn" data-i18n="btn.focusTable">Focus table</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:54px" data-i18n="table.hash">#</th>
+                  <th style="width:180px" data-i18n="table.time">Time</th>
+                  <th style="width:110px" data-i18n="table.role">Role</th>
+                  <th style="width:100px" data-i18n="table.source">Source</th>
+                  <th style="width:90px" data-i18n="table.tag">Tag</th>
+                  <th data-i18n="table.text">Text</th>
+                </tr>
+              </thead>
+              <tbody id="recoveryBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel recovery-side-panel">
+          <div class="panel-head">
+            <div data-i18n="recovery.eventDetailTitle">Event Detail</div>
+            <div class="muted" data-i18n="recovery.eventDetailHint">Click any row on the left</div>
+          </div>
+          <div id="recoveryPreview" class="preview">
+            <div class="empty" data-i18n="recovery.previewEmpty">Load a session, then click an event row to view full text.</div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const LOCALE_STORAGE_KEY = 'sessiondeck.locale';
+    const I18N = {
+      en: {
+        'app.title': 'SessionDeck',
+        'tab.manager': 'Session Manager',
+        'tab.recovery': 'Recovery (Read-only)',
+        'manager.title': 'SessionDeck',
+        'manager.searchPlaceholder': 'Filter by summary / first prompt / last prompt / project / session ID',
+        'manager.hideEmptyTitle': 'Hide sessions with empty first/last/summary',
+        'manager.hideEmpty': 'Hide empty sessions',
+        'manager.listHint': 'List prioritizes Project + Summary, then first/last prompts',
+        'manager.previewTitle': 'Session Preview',
+        'manager.previewHint': 'Click any row on the left',
+        'manager.previewEmpty': 'Select a session on the left to preview details and recent user messages.',
+        'manager.globalSearchPlaceholder': 'Search full text across all sessions',
+        'manager.globalResultsTitle': 'Global Search Results',
+        'manager.globalResultsHint': 'Click a result row to jump to that session',
+        'manager.notSearched': 'Not searched',
+        'manager.searching': 'Searching...',
+        'manager.resultsCount': '{count} results',
+        'manager.count': '{visible} / {total} sessions',
+        'manager.selected': '{count} selected',
+        'manager.noMatch': 'No matching sessions',
+        'manager.loadingDetail': 'Loading session detail...',
+        'manager.noUserMessages': 'No extracted user messages.',
+        'manager.noPromptHint': 'This session has no readable prompt text. Usually a tool/system run or a short interrupted session.',
+        'manager.detailTitle': 'Session Detail',
+        'manager.kpiMessages': 'Messages: {count}',
+        'manager.kpiModified': 'Modified: {time}',
+        'manager.kpiCreated': 'Created: {time}',
+        'manager.projectPath': 'Project Path',
+        'manager.tabSummary': 'Overview',
+        'manager.tabPrompts': 'Prompts',
+        'manager.tabMessages': 'User Messages ({count})',
+        'manager.tabMeta': 'Name/Tags',
+        'manager.cardSummary': 'Summary',
+        'manager.cardName': 'Name',
+        'manager.cardTags': 'Tags',
+        'manager.cardFirstPrompt': 'First Prompt',
+        'manager.cardLastPrompt': 'Last Prompt',
+        'manager.cardRecentMessages': 'Recent User Messages ({count})',
+        'manager.cardMetaEditor': 'Name and tags (sidecar, original session untouched)',
+        'manager.metaNamePlaceholder': 'Custom name (optional)',
+        'manager.metaTagsPlaceholder': 'Tags, comma-separated (optional)',
+        'manager.metaSaving': 'Saving...',
+        'manager.metaSaved': 'Saved',
+        'manager.rootPath': 'Session Root: {root}',
+        'manager.rebuildDone': 'Index rebuild completed\nProjects: {projects}\nSessions: {sessions}',
+        'manager.enterSearchKeyword': 'Enter a search keyword',
+        'manager.deleteConfirm': 'Delete {count} session(s)?\n\nThis will:\n1) Move session files to system Trash\n2) Remove entries from sessions-index.json\n\nYou can restore files from Trash.',
+        'manager.deleteDone': 'Delete done: {deleted}\nFailed: {failed}',
+        'manager.deleteFailed': 'Delete failed: {message}',
+        'recovery.title': 'Session Recovery (Read-only)',
+        'recovery.subtitle': 'Read main + subagent logs. Defaults to pre-compact context. Source files stay untouched.',
+        'recovery.sessionIdPlaceholder': 'Enter Session ID, e.g. 8450d97a-a209-46c0-9834-689f02871525',
+        'recovery.searchPlaceholder': 'Search: keyword / phrase / filename',
+        'recovery.roleAll': 'All roles',
+        'recovery.roleUser': 'USER only',
+        'recovery.roleAssistant': 'ASSISTANT only',
+        'recovery.roleSystem': 'SYSTEM only',
+        'recovery.preOnly': 'Pre-compact only',
+        'recovery.statsInit': 'Enter Session ID and click Load Session',
+        'recovery.statsCompactMissing': 'Not detected',
+        'recovery.statsLine': 'total {total} | first compact: {compactAt} | subagents: {subagents} | compact files: {compactFiles}',
+        'recovery.countVisible': '{count} visible',
+        'recovery.countCompact': '{count} compact',
+        'recovery.countPre': '{count} pre-compact',
+        'recovery.eventDetailTitle': 'Event Detail',
+        'recovery.eventDetailHint': 'Click any row on the left',
+        'recovery.previewEmpty': 'Load a session, then click an event row to view full text.',
+        'recovery.tableNoDataset': 'Enter Session ID and click "Load Session".',
+        'recovery.tableNoMatches': 'No matching records (try disabling "Pre-compact only").',
+        'recovery.fullContent': 'Full Content',
+        'recovery.loadFailed': 'Load failed: HTTP {status}',
+        'recovery.invalidSessionId': 'Invalid Session ID format. Please enter full UUID.',
+        'recovery.readingLogs': 'Reading local logs...',
+        'recovery.noCompactFound': 'No compact event detected.',
+        'recovery.noExportRecords': 'No records available to export.',
+        'btn.refresh': 'Refresh',
+        'btn.clearFilter': 'Clear filter',
+        'btn.selectVisible': 'Select visible',
+        'btn.batchExport': 'Batch export',
+        'btn.rebuildIndex': 'Rebuild index',
+        'btn.openRecovery': 'Open in Recovery',
+        'btn.deleteSelected': 'Delete selected',
+        'btn.globalSearch': 'Global search',
+        'btn.clearResults': 'Clear results',
+        'btn.loadSession': 'Load Session',
+        'btn.locateCompact': 'Locate compact',
+        'btn.exportMarkdown': 'Export current view Markdown',
+        'btn.clearFilters': 'Clear filters',
+        'btn.focusTable': 'Focus table',
+        'btn.expandDetails': 'Show details',
+        'btn.saveNameTags': 'Save name/tags',
+        'common.includeSubagents': 'Include subagents',
+        'common.live': 'LIVE',
+        'common.httpError': 'Request failed: HTTP {status}',
+        'common.unknown': '(unknown)',
+        'common.empty': '(empty)',
+        'common.none': '(none)',
+        'table.select': 'Sel',
+        'table.no': 'No',
+        'table.modified': 'Modified',
+        'table.msgs': 'Msgs',
+        'table.name': 'Name',
+        'table.project': 'Project',
+        'table.summary': 'Summary',
+        'table.firstPrompt': 'First Prompt',
+        'table.lastPrompt': 'Last Prompt',
+        'table.hash': '#',
+        'table.time': 'Time',
+        'table.role': 'Role',
+        'table.source': 'Source',
+        'table.tag': 'Tag',
+        'table.text': 'Text',
+        'recovery.labelSessionId': 'Session ID',
+        'recovery.labelEventNo': 'Event #',
+        'recovery.labelTimestamp': 'Timestamp',
+        'recovery.labelLine': 'Line',
+        'recovery.labelTag': 'Tag',
+      },
+      zh: {
+        'app.title': 'SessionDeck',
+        'tab.manager': '会话管理',
+        'tab.recovery': '恢复视图（只读）',
+        'manager.title': 'SessionDeck',
+        'manager.searchPlaceholder': '关键词过滤：summary / first prompt / last prompt / project / sessionId',
+        'manager.hideEmptyTitle': '隐藏 first/last/summary 都为空的会话',
+        'manager.hideEmpty': '隐藏空会话',
+        'manager.listHint': '列表优先显示 Project + Summary，再看 first/last prompt',
+        'manager.previewTitle': '会话详情预览',
+        'manager.previewHint': '点击左侧任意会话行',
+        'manager.previewEmpty': '先在左侧点一个会话，右侧会显示完整信息和最近用户消息。',
+        'manager.globalSearchPlaceholder': '跨所有 session 全文搜索（输入关键词后点搜索）',
+        'manager.globalResultsTitle': '全局全文搜索结果',
+        'manager.globalResultsHint': '点击结果行可直接定位到该会话详情',
+        'manager.notSearched': '未搜索',
+        'manager.searching': '搜索中...',
+        'manager.resultsCount': '{count} 条结果',
+        'manager.count': '{visible} / {total} sessions',
+        'manager.selected': '{count} selected',
+        'manager.noMatch': '没有匹配会话',
+        'manager.loadingDetail': '正在加载会话详情...',
+        'manager.noUserMessages': '没有提取到用户消息。',
+        'manager.noPromptHint': '该会话暂无可读 prompt 文本，通常是工具/系统型会话或非常短的中断会话。',
+        'manager.detailTitle': '会话详情',
+        'manager.kpiMessages': '消息数: {count}',
+        'manager.kpiModified': '更新: {time}',
+        'manager.kpiCreated': '创建: {time}',
+        'manager.projectPath': '项目路径',
+        'manager.tabSummary': '概览',
+        'manager.tabPrompts': 'Prompts',
+        'manager.tabMessages': '用户消息 ({count})',
+        'manager.tabMeta': '命名/标签',
+        'manager.cardSummary': 'Summary',
+        'manager.cardName': '名称',
+        'manager.cardTags': '标签',
+        'manager.cardFirstPrompt': 'First Prompt',
+        'manager.cardLastPrompt': 'Last Prompt',
+        'manager.cardRecentMessages': '最近用户消息 ({count})',
+        'manager.cardMetaEditor': '命名与标签（sidecar，不改原 session）',
+        'manager.metaNamePlaceholder': '自定义名称（可空）',
+        'manager.metaTagsPlaceholder': '标签，逗号分隔（可空）',
+        'manager.metaSaving': '保存中...',
+        'manager.metaSaved': '已保存',
+        'manager.rootPath': 'Session Root: {root}',
+        'manager.rebuildDone': '索引重建完成\n项目目录: {projects}\n会话数: {sessions}',
+        'manager.enterSearchKeyword': '请输入搜索关键词',
+        'manager.deleteConfirm': '确认删除 {count} 条会话？\n\n操作内容：\n1) 会话文件移动到系统废纸篓 (trash)\n2) 从 sessions-index.json 移除索引\n\n你可在废纸篓恢复文件。',
+        'manager.deleteDone': '删除完成: {deleted} 条\n失败: {failed} 条',
+        'manager.deleteFailed': '删除失败: {message}',
+        'recovery.title': '会话恢复（只读）',
+        'recovery.subtitle': '读取主会话 + subagents 日志，默认先看压缩前上下文，不改任何源文件。',
+        'recovery.sessionIdPlaceholder': '输入 Session ID，例如 8450d97a-a209-46c0-9834-689f02871525',
+        'recovery.searchPlaceholder': '搜索：关键词 / 句子片段 / 文件名',
+        'recovery.roleAll': '全部角色',
+        'recovery.roleUser': '仅 USER',
+        'recovery.roleAssistant': '仅 ASSISTANT',
+        'recovery.roleSystem': '仅 SYSTEM',
+        'recovery.preOnly': '只看压缩前',
+        'recovery.statsInit': '先输入 Session ID 并加载',
+        'recovery.statsCompactMissing': '未检测到',
+        'recovery.statsLine': 'total {total} | first compact: {compactAt} | subagents: {subagents} | compact files: {compactFiles}',
+        'recovery.countVisible': '{count} visible',
+        'recovery.countCompact': '{count} compact',
+        'recovery.countPre': '{count} pre-compact',
+        'recovery.eventDetailTitle': '事件详情',
+        'recovery.eventDetailHint': '点击左侧任意行',
+        'recovery.previewEmpty': '加载 session 后，点击某条记录查看全文。',
+        'recovery.tableNoDataset': '输入 Session ID 后点击“加载 Session”。',
+        'recovery.tableNoMatches': '没有匹配记录（可尝试取消“只看压缩前”）。',
+        'recovery.fullContent': '完整内容',
+        'recovery.loadFailed': '加载失败: HTTP {status}',
+        'recovery.invalidSessionId': 'Session ID 格式无效，请输入完整 UUID。',
+        'recovery.readingLogs': '正在读取本地日志...',
+        'recovery.noCompactFound': '未检测到 compact 事件。',
+        'recovery.noExportRecords': '当前没有可导出的记录。',
+        'btn.refresh': '刷新',
+        'btn.clearFilter': '清空过滤',
+        'btn.selectVisible': '选择当前结果',
+        'btn.batchExport': '批量导出',
+        'btn.rebuildIndex': '重建索引',
+        'btn.openRecovery': '在 Recovery 打开当前会话',
+        'btn.deleteSelected': '删除已选',
+        'btn.globalSearch': '全文搜索',
+        'btn.clearResults': '清空结果',
+        'btn.loadSession': '加载 Session',
+        'btn.locateCompact': '定位压缩点',
+        'btn.exportMarkdown': '导出当前视图 Markdown',
+        'btn.clearFilters': '清空过滤',
+        'btn.focusTable': '专注表格',
+        'btn.expandDetails': '展开详情',
+        'btn.saveNameTags': '保存命名/标签',
+        'common.includeSubagents': '含 subagents',
+        'common.live': '实时',
+        'common.httpError': '请求失败: HTTP {status}',
+        'common.unknown': '(unknown)',
+        'common.empty': '(empty)',
+        'common.none': '(none)',
+        'table.select': '选',
+        'table.no': '序号',
+        'table.modified': '更新时间',
+        'table.msgs': '消息数',
+        'table.name': '名称',
+        'table.project': '项目',
+        'table.summary': '摘要',
+        'table.firstPrompt': '首条 Prompt',
+        'table.lastPrompt': '末条 Prompt',
+        'table.hash': '#',
+        'table.time': '时间',
+        'table.role': '角色',
+        'table.source': '来源',
+        'table.tag': '标签',
+        'table.text': '内容',
+        'recovery.labelSessionId': 'Session ID',
+        'recovery.labelEventNo': '事件 #',
+        'recovery.labelTimestamp': '时间',
+        'recovery.labelLine': '行号',
+        'recovery.labelTag': '标签',
+      }
+    };
+
+    const state = {
+      view: 'manager',
+      locale: (function detectLocale() {
+        const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
+        if (saved === 'zh' || saved === 'en') return saved;
+        return 'en';
+      })(),
+      manager: {
+        sessions: [],
+        filtered: [],
+        selected: new Set(),
+        activeKey: null,
+        activeDetail: null,
+        rootPath: '',
+        query: '',
+        hideEmpty: true,
+        focusTable: false,
+        globalHits: [],
+        globalSearchStatus: 'idle',
+        globalSearchError: '',
+        previewTab: 'summary',
+      },
+      recovery: {
+        sessionId: '',
+        query: '',
+        role: 'all',
+        preOnly: true,
+        includeSubagents: true,
+        events: [],
+        filtered: [],
+        activeId: null,
+        dataset: null,
+        focusTable: false,
+      }
+    };
+
+    const els = {
+      tabs: [...document.querySelectorAll('.tab-btn')],
+      views: {
+        manager: document.getElementById('view-manager'),
+        recovery: document.getElementById('view-recovery'),
+      },
+      localeToggleBtn: document.getElementById('localeToggleBtn'),
+      managerLayout: document.getElementById('managerLayout'),
+      recoveryLayout: document.getElementById('recoveryLayout'),
+
+      rootPath: document.getElementById('rootPath'),
+      searchInput: document.getElementById('searchInput'),
+      hideEmptyToggle: document.getElementById('hideEmptyToggle'),
+      refreshBtn: document.getElementById('refreshBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      selectVisibleBtn: document.getElementById('selectVisibleBtn'),
+      batchExportBtn: document.getElementById('batchExportBtn'),
+      rebuildIndexBtn: document.getElementById('rebuildIndexBtn'),
+      openRecoveryBtn: document.getElementById('openRecoveryBtn'),
+      deleteBtn: document.getElementById('deleteBtn'),
+      sessionBody: document.getElementById('sessionBody'),
+      countPill: document.getElementById('countPill'),
+      selectedPill: document.getElementById('selectedPill'),
+      preview: document.getElementById('preview'),
+      managerFocusBtn: document.getElementById('managerFocusBtn'),
+      globalSearchInput: document.getElementById('globalSearchInput'),
+      globalSearchSubagentsToggle: document.getElementById('globalSearchSubagentsToggle'),
+      globalSearchBtn: document.getElementById('globalSearchBtn'),
+      globalSearchClearBtn: document.getElementById('globalSearchClearBtn'),
+      globalSearchInfo: document.getElementById('globalSearchInfo'),
+      globalSearchPanel: document.getElementById('globalSearchPanel'),
+      globalSearchBody: document.getElementById('globalSearchBody'),
+
+      recoverySessionId: document.getElementById('recoverySessionId'),
+      recoveryLoadBtn: document.getElementById('recoveryLoadBtn'),
+      recoveryLocateCompactBtn: document.getElementById('recoveryLocateCompactBtn'),
+      recoveryExportBtn: document.getElementById('recoveryExportBtn'),
+      recoverySearchInput: document.getElementById('recoverySearchInput'),
+      recoveryRoleSelect: document.getElementById('recoveryRoleSelect'),
+      recoveryPreOnlyToggle: document.getElementById('recoveryPreOnlyToggle'),
+      recoveryIncludeSubagentsToggle: document.getElementById('recoveryIncludeSubagentsToggle'),
+      recoveryClearFilterBtn: document.getElementById('recoveryClearFilterBtn'),
+      recoveryBody: document.getElementById('recoveryBody'),
+      recoveryPreview: document.getElementById('recoveryPreview'),
+      recoveryCountPill: document.getElementById('recoveryCountPill'),
+      recoveryCompactPill: document.getElementById('recoveryCompactPill'),
+      recoveryPrePill: document.getElementById('recoveryPrePill'),
+      recoveryStatsHint: document.getElementById('recoveryStatsHint'),
+      recoveryFocusBtn: document.getElementById('recoveryFocusBtn'),
+    };
+
+    function t(key, vars = {}) {
+      const dict = I18N[state.locale] || I18N.en;
+      const fallback = I18N.en[key] || key;
+      const template = dict[key] || fallback;
+      return String(template).replace(/\{(\w+)\}/g, (_, name) => String(vars[name] ?? ''));
+    }
+
+    function formatLocaleTime(value) {
+      if (!value) return '—';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      const lang = state.locale === 'zh' ? 'zh-CN' : 'en-US';
+      return new Intl.DateTimeFormat(lang, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(d);
+    }
+
+    function applyI18n() {
+      document.title = t('app.title');
+      for (const node of document.querySelectorAll('[data-i18n]')) {
+        node.textContent = t(node.dataset.i18n);
+      }
+      for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
+        node.setAttribute('placeholder', t(node.dataset.i18nPlaceholder));
+      }
+      for (const node of document.querySelectorAll('[data-i18n-title]')) {
+        node.setAttribute('title', t(node.dataset.i18nTitle));
+      }
+      if (els.localeToggleBtn) {
+        els.localeToggleBtn.textContent = state.locale === 'en' ? '中文' : 'EN';
+      }
+      renderRootPath();
+      renderGlobalSearchInfo();
+      syncFocusTableUI();
+    }
+
+    function setLocale(locale) {
+      if (!['en', 'zh'].includes(locale)) return;
+      state.locale = locale;
+      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+      applyI18n();
+      renderManagerTable();
+      renderManagerPreview(state.manager.activeDetail);
+      renderGlobalSearchResults();
+      renderRecoveryTable();
+      renderRecoveryPreview(findRecoveryEventById(state.recovery.activeId));
+    }
+
+    function esc(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function fmtTime(value) {
+      if (!value) return '—';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return formatLocaleTime(value);
+    }
+
+    function switchView(view) {
+      state.view = view;
+      for (const btn of els.tabs) {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      }
+      for (const [name, node] of Object.entries(els.views)) {
+        node.classList.toggle('active', name === view);
+      }
+    }
+
+    function renderRootPath() {
+      const root = state.manager.rootPath || t('common.unknown');
+      els.rootPath.textContent = t('manager.rootPath', { root });
+    }
+
+    function renderGlobalSearchInfo() {
+      const m = state.manager;
+      if (m.globalSearchStatus === 'loading') {
+        els.globalSearchInfo.textContent = t('manager.searching');
+        return;
+      }
+      if (m.globalSearchStatus === 'error') {
+        els.globalSearchInfo.textContent = m.globalSearchError || t('manager.notSearched');
+        return;
+      }
+      if (m.globalSearchStatus === 'done') {
+        els.globalSearchInfo.textContent = t('manager.resultsCount', { count: m.globalHits.length });
+        return;
+      }
+      els.globalSearchInfo.textContent = t('manager.notSearched');
+    }
+
+    function syncFocusTableUI() {
+      const managerFocus = Boolean(state.manager.focusTable);
+      const recoveryFocus = Boolean(state.recovery.focusTable);
+
+      els.managerLayout.classList.toggle('focus-table', managerFocus);
+      els.recoveryLayout.classList.toggle('focus-table', recoveryFocus);
+
+      els.managerFocusBtn.textContent = managerFocus ? t('btn.expandDetails') : t('btn.focusTable');
+      els.recoveryFocusBtn.textContent = recoveryFocus ? t('btn.expandDetails') : t('btn.focusTable');
+    }
+
+    function hasReadablePrompt(session) {
+      const first = String(session.firstPrompt || '').trim();
+      const last = String(session.lastPrompt || '').trim();
+      const summary = String(session.summary || '').trim();
+      return Boolean(first || last || summary);
+    }
+
+    function managerSearchable(session) {
+      return [
+        session.sessionId,
+        session.customName,
+        Array.isArray(session.customTags) ? session.customTags.join(' ') : '',
+        session.projectPath,
+        session.summary,
+        session.firstPrompt,
+        session.lastPrompt,
+      ].join(' ').toLowerCase();
+    }
+
+    function applyManagerFilter() {
+      const m = state.manager;
+      const q = m.query.trim().toLowerCase();
+      m.filtered = m.sessions.filter((s) => {
+        if (m.hideEmpty && !hasReadablePrompt(s)) return false;
+        if (!q) return true;
+        return managerSearchable(s).includes(q);
+      });
+    }
+
+    function updateManagerStats() {
+      const m = state.manager;
+      els.countPill.textContent = t('manager.count', { visible: m.filtered.length, total: m.sessions.length });
+      els.selectedPill.textContent = t('manager.selected', { count: m.selected.size });
+      els.deleteBtn.disabled = m.selected.size === 0;
+      els.batchExportBtn.disabled = m.selected.size === 0;
+      els.openRecoveryBtn.disabled = !m.activeDetail || !m.activeDetail.sessionId;
+    }
+
+    function renderManagerTable() {
+      const m = state.manager;
+      if (m.filtered.length === 0) {
+        els.sessionBody.innerHTML = `<tr><td colspan="9" class="empty">${esc(t('manager.noMatch'))}</td></tr>`;
+        updateManagerStats();
+        return;
+      }
+
+      els.sessionBody.innerHTML = m.filtered.map((s, i) => {
+        const checked = m.selected.has(s.key) ? 'checked' : '';
+        const active = m.activeKey === s.key ? 'active' : '';
+        return `
+          <tr class="data-row ${active}" data-key="${esc(s.key)}">
+            <td><input type="checkbox" data-role="select" data-key="${esc(s.key)}" ${checked}></td>
+            <td title="${esc(s.sessionId)}">${i + 1}</td>
+            <td>${esc(fmtTime(s.modified || s.created))}</td>
+            <td>${esc(s.messageCount)}</td>
+            <td>
+              <div class="name-cell">
+                <span class="name-main" title="${esc(s.customName || '')}">${esc(s.customName || '—')}</span>
+                <span class="tiny" title="${esc(Array.isArray(s.customTags) ? s.customTags.join(', ') : '')}">${esc((Array.isArray(s.customTags) && s.customTags.length > 0) ? s.customTags.join(', ') : '')}</span>
+              </div>
+            </td>
+            <td class="project" title="${esc(s.projectPath || '')}">${esc(s.projectPath || t('common.unknown'))}</td>
+            <td title="${esc(s.summary || '')}"><div class="ellipsis">${esc(s.summary || '—')}</div></td>
+            <td title="${esc(s.firstPrompt || '')}"><div class="ellipsis">${esc(s.firstPrompt || '—')}</div></td>
+            <td title="${esc(s.lastPrompt || '')}"><div class="ellipsis">${esc(s.lastPrompt || '—')}</div></td>
+          </tr>
+        `;
+      }).join('');
+
+      updateManagerStats();
+    }
+
+    function renderManagerPreview(detail) {
+      if (!detail) {
+        els.preview.innerHTML = `<div class="empty">${esc(t('manager.previewEmpty'))}</div>`;
+        return;
+      }
+
+      const messages = Array.isArray(detail.recentUserPrompts) ? detail.recentUserPrompts : [];
+      const msgHtml = messages.length === 0
+        ? `<div class="muted">${esc(t('manager.noUserMessages'))}</div>`
+        : `<ul class="manager-msg-list">${messages.map((m) => `
+            <li class="manager-msg-item">
+              <div>${esc(m.text)}</div>
+              <div class="muted">${esc(fmtTime(m.timestamp))}</div>
+            </li>
+          `).join('')}</ul>`;
+
+      const hasAnyPrompt = Boolean(
+        String(detail.firstPrompt || '').trim() ||
+        String(detail.lastPrompt || '').trim() ||
+        String(detail.summary || '').trim()
+      );
+
+      const hint = hasAnyPrompt
+        ? ''
+        : `<div class="hint-box">${esc(t('manager.noPromptHint'))}</div>`;
+
+      const currentTab = ['summary', 'prompts', 'messages', 'meta'].includes(state.manager.previewTab)
+        ? state.manager.previewTab
+        : 'summary';
+      state.manager.previewTab = currentTab;
+      const tagsText = (Array.isArray(detail.customTags) && detail.customTags.length > 0)
+        ? detail.customTags.join(', ')
+        : '—';
+      const safeProject = esc(detail.projectPath || t('common.unknown'));
+
+      els.preview.innerHTML = `
+        <div class="manager-preview">
+          <div class="manager-hero">
+            <div class="manager-hero-head">
+              <div class="manager-hero-title">${esc(t('manager.detailTitle'))}</div>
+              <div class="manager-kpis">
+                <span class="manager-kpi">${esc(t('manager.kpiMessages', { count: detail.messageCount }))}</span>
+                <span class="manager-kpi">${esc(t('manager.kpiModified', { time: fmtTime(detail.modified || detail.created) }))}</span>
+                <span class="manager-kpi">${esc(t('manager.kpiCreated', { time: fmtTime(detail.created) }))}</span>
+              </div>
+            </div>
+            <div class="manager-session-id mono">${esc(detail.sessionId)}</div>
+            <div class="manager-project-row">
+              <div class="meta-label">${esc(t('manager.projectPath'))}</div>
+              <div class="manager-project-path" title="${safeProject}">${safeProject}</div>
+            </div>
+          </div>
+
+          <div class="manager-tabs">
+            <button class="manager-tab ${currentTab === 'summary' ? 'active' : ''}" data-preview-tab="summary">${esc(t('manager.tabSummary'))}</button>
+            <button class="manager-tab ${currentTab === 'prompts' ? 'active' : ''}" data-preview-tab="prompts">${esc(t('manager.tabPrompts'))}</button>
+            <button class="manager-tab ${currentTab === 'messages' ? 'active' : ''}" data-preview-tab="messages">${esc(t('manager.tabMessages', { count: messages.length }))}</button>
+            <button class="manager-tab ${currentTab === 'meta' ? 'active' : ''}" data-preview-tab="meta">${esc(t('manager.tabMeta'))}</button>
+          </div>
+
+          <div class="manager-pane ${currentTab === 'summary' ? 'active' : ''}" data-preview-pane="summary">
+            ${hint}
+            <div class="manager-card">
+              <div class="manager-card-title">${esc(t('manager.cardSummary'))}</div>
+              <div class="manager-card-body summary">${esc(detail.summary || '—')}</div>
+            </div>
+            <div class="manager-meta-grid">
+              <div class="meta-item">
+                <div class="meta-label">${esc(t('manager.cardName'))}</div>
+                <div class="meta-value">${esc(detail.customName || '—')}</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">${esc(t('manager.cardTags'))}</div>
+                <div class="meta-value">${esc(tagsText)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="manager-pane ${currentTab === 'prompts' ? 'active' : ''}" data-preview-pane="prompts">
+            <div class="manager-card">
+              <div class="manager-card-title">${esc(t('manager.cardFirstPrompt'))}</div>
+              <div class="manager-card-body prompt">${esc(detail.firstPrompt || '—')}</div>
+            </div>
+            <div class="manager-card">
+              <div class="manager-card-title">${esc(t('manager.cardLastPrompt'))}</div>
+              <div class="manager-card-body prompt">${esc(detail.lastPrompt || '—')}</div>
+            </div>
+          </div>
+
+          <div class="manager-pane ${currentTab === 'messages' ? 'active' : ''}" data-preview-pane="messages">
+            <div class="manager-card">
+              <div class="manager-card-title">${esc(t('manager.cardRecentMessages', { count: messages.length }))}</div>
+              <div class="manager-card-body">${msgHtml}</div>
+            </div>
+          </div>
+
+          <div class="manager-pane ${currentTab === 'meta' ? 'active' : ''}" data-preview-pane="meta">
+            <div class="manager-card">
+              <div class="manager-card-title">${esc(t('manager.cardMetaEditor'))}</div>
+              <div class="manager-card-body">
+                <div class="manager-meta-pane">
+                  <input id="detailNameInput" class="input" placeholder="${esc(t('manager.metaNamePlaceholder'))}" value="${esc(detail.customName || '')}" />
+                  <input id="detailTagsInput" class="input" placeholder="${esc(t('manager.metaTagsPlaceholder'))}" value="${esc((Array.isArray(detail.customTags) ? detail.customTags.join(', ') : ''))}" />
+                  <div class="meta-actions">
+                    <button id="saveMetaBtn" class="btn btn-accent">${esc(t('btn.saveNameTags'))}</button>
+                    <span id="saveMetaHint" class="muted"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      bindManagerPreviewTabs();
+      bindPreviewMetaEditor(detail);
+      updateManagerStats();
+    }
+
+    function bindManagerPreviewTabs() {
+      const tabButtons = [...els.preview.querySelectorAll('[data-preview-tab]')];
+      const panes = [...els.preview.querySelectorAll('[data-preview-pane]')];
+      if (tabButtons.length === 0 || panes.length === 0) return;
+
+      const switchTo = (pane) => {
+        state.manager.previewTab = pane;
+        for (const btn of tabButtons) {
+          btn.classList.toggle('active', btn.dataset.previewTab === pane);
+        }
+        for (const panel of panes) {
+          panel.classList.toggle('active', panel.dataset.previewPane === pane);
+        }
+      };
+
+      for (const btn of tabButtons) {
+        btn.addEventListener('click', () => switchTo(btn.dataset.previewTab));
+      }
+    }
+
+    async function fetchSessions() {
+      const res = await fetch('/api/sessions', { cache: 'no-store' });
+      if (!res.ok) throw new Error(t('common.httpError', { status: res.status }));
+      const data = await res.json();
+      state.manager.sessions = Array.isArray(data.sessions) ? data.sessions : [];
+      state.manager.rootPath = data.root || t('common.unknown');
+      renderRootPath();
+    }
+
+    async function fetchSessionDetail(key) {
+      const res = await fetch(`/api/session-detail?key=${encodeURIComponent(key)}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(t('common.httpError', { status: res.status }));
+      return res.json();
+    }
+
+    async function saveSessionCustomMeta(key, name, tags) {
+      const res = await fetch('/api/session-custom-meta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, name, tags }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
+      return data;
+    }
+
+    async function rebuildSessionIndex(dryRun = false) {
+      const res = await fetch('/api/rebuild-index', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
+      return data;
+    }
+
+    async function fetchGlobalSearch(query, includeSubagents = false, limit = 200) {
+      const url = `/api/search-global?q=${encodeURIComponent(query)}&includeSubagents=${includeSubagents ? '1' : '0'}&limit=${limit}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
+      return data;
+    }
+
+    async function fetchBatchExport(keys) {
+      const res = await fetch('/api/export-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
+      return data;
+    }
+
+    function selectedKeysInCurrentList() {
+      const m = state.manager;
+      const visible = new Set(m.filtered.map((s) => s.key));
+      return [...m.selected].filter((k) => visible.has(k));
+    }
+
+    function renderGlobalSearchResults() {
+      const m = state.manager;
+      const hits = Array.isArray(m.globalHits) ? m.globalHits : [];
+      if (hits.length === 0) {
+        els.globalSearchPanel.classList.add('hidden');
+        els.globalSearchBody.innerHTML = '';
+        return;
+      }
+
+      els.globalSearchPanel.classList.remove('hidden');
+      els.globalSearchBody.innerHTML = hits.map((h) => `
+        <tr class="data-row" data-gkey="${esc(h.key)}">
+          <td>${esc(fmtTime(h.timestamp))}</td>
+          <td>${esc((h.role || '').toUpperCase())}</td>
+          <td>${esc(h.sourceKind || 'main')}</td>
+          <td class="mono" title="${esc(h.sessionId)}">${esc((h.sessionId || '').slice(0, 8))}</td>
+          <td><span class="one-line" title="${esc(h.text || '')}">${esc(h.text || '—')}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    async function activateManagerSessionByKey(key) {
+      const m = state.manager;
+      if (!key) return;
+      m.activeKey = key;
+      renderManagerTable();
+      els.preview.innerHTML = `<div class="empty">${esc(t('manager.loadingDetail'))}</div>`;
+      try {
+        m.activeDetail = await fetchSessionDetail(key);
+        if (m.activeDetail && !m.activeDetail.key) {
+          m.activeDetail.key = key;
+        }
+        renderManagerPreview(m.activeDetail);
+      } catch (error) {
+        els.preview.innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+      }
+    }
+
+    function bindPreviewMetaEditor(detail) {
+      const nameInput = document.getElementById('detailNameInput');
+      const tagsInput = document.getElementById('detailTagsInput');
+      const saveBtn = document.getElementById('saveMetaBtn');
+      const hint = document.getElementById('saveMetaHint');
+
+      if (!nameInput || !tagsInput || !saveBtn || !hint || !detail?.key) {
+        return;
+      }
+
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        hint.textContent = t('manager.metaSaving');
+        try {
+          const payload = await saveSessionCustomMeta(detail.key, nameInput.value, tagsInput.value);
+          hint.textContent = t('manager.metaSaved');
+          const m = state.manager;
+          if (m.activeDetail) {
+            m.activeDetail.customName = payload.name || '';
+            m.activeDetail.customTags = Array.isArray(payload.tags) ? payload.tags : [];
+          }
+          await reloadManagerAndRender();
+        } catch (error) {
+          hint.textContent = error.message;
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    }
+
+    async function reloadManagerAndRender() {
+      const m = state.manager;
+      await fetchSessions();
+      applyManagerFilter();
+
+      const validKeys = new Set(m.sessions.map((s) => s.key));
+      m.selected = new Set([...m.selected].filter((k) => validKeys.has(k)));
+
+      if (m.activeKey && !validKeys.has(m.activeKey)) {
+        m.activeKey = null;
+        m.activeDetail = null;
+      }
+
+      renderManagerTable();
+      renderManagerPreview(m.activeDetail);
+    }
+
+    async function onDeleteSelected() {
+      const m = state.manager;
+      const keys = [...m.selected];
+      if (keys.length === 0) return;
+
+      const confirmed = window.confirm(
+        t('manager.deleteConfirm', { count: keys.length })
+      );
+      if (!confirmed) return;
+
+      els.deleteBtn.disabled = true;
+      try {
+        const res = await fetch('/api/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keys })
+        });
+        const result = await res.json();
+        window.alert(t('manager.deleteDone', { deleted: result.deleted || 0, failed: result.failed || 0 }));
+
+        m.selected.clear();
+        m.activeKey = null;
+        m.activeDetail = null;
+        await reloadManagerAndRender();
+      } catch (error) {
+        window.alert(t('manager.deleteFailed', { message: error.message }));
+      } finally {
+        updateManagerStats();
+      }
+    }
+
+    async function onBatchExportSelected() {
+      const keys = [...state.manager.selected];
+      if (keys.length === 0) return;
+
+      els.batchExportBtn.disabled = true;
+      try {
+        const data = await fetchBatchExport(keys);
+        const blob = new Blob([String(data.content || '')], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = data.filename || 'session-batch-export.md';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        updateManagerStats();
+      }
+    }
+
+    function recoverySearchable(event) {
+      return [
+        event.text,
+        event.role,
+        event.type,
+        event.sourceKind,
+        event.sourceFile,
+      ].join(' ').toLowerCase();
+    }
+
+    function applyRecoveryFilter() {
+      const r = state.recovery;
+      const q = r.query.trim().toLowerCase();
+      r.filtered = r.events.filter((e) => {
+        if (r.preOnly && !e.isPreCompact) return false;
+        if (r.role !== 'all' && e.role !== r.role) return false;
+        if (q && !recoverySearchable(e).includes(q)) return false;
+        return true;
+      });
+    }
+
+    function eventTag(event) {
+      if (event.isCompactSignal) return '<span class="badge compact">compact</span>';
+      if (event.isPreCompact) return '<span class="badge pre">pre</span>';
+      return '<span class="badge">post</span>';
+    }
+
+    function roleBadge(role) {
+      if (role === 'user') return '<span class="badge">user</span>';
+      if (role === 'assistant') return '<span class="badge">assistant</span>';
+      return '<span class="badge">system</span>';
+    }
+
+    function sourceBadge(source) {
+      if (source === 'compact') return '<span class="badge compact">compact file</span>';
+      if (source === 'subagent') return '<span class="badge">subagent</span>';
+      return '<span class="badge">main</span>';
+    }
+
+    function updateRecoveryStats() {
+      const r = state.recovery;
+      const stats = r.dataset?.stats || null;
+      const compactCount = r.events.filter((e) => e.isCompactSignal).length;
+      const preCount = r.events.filter((e) => e.isPreCompact).length;
+
+      els.recoveryCountPill.textContent = t('recovery.countVisible', { count: r.filtered.length });
+      els.recoveryCompactPill.textContent = t('recovery.countCompact', { count: compactCount });
+      els.recoveryPrePill.textContent = t('recovery.countPre', { count: preCount });
+
+      if (!stats) {
+        els.recoveryStatsHint.textContent = t('recovery.statsInit');
+      } else {
+        const compactAt = stats.firstCompactAt ? fmtTime(stats.firstCompactAt) : t('recovery.statsCompactMissing');
+        els.recoveryStatsHint.textContent =
+          t('recovery.statsLine', {
+            total: stats.totalEvents,
+            compactAt,
+            subagents: stats.subagentFiles,
+            compactFiles: stats.compactFiles,
+          });
+      }
+    }
+
+    function renderRecoveryTable() {
+      const r = state.recovery;
+      if (!r.dataset) {
+        els.recoveryBody.innerHTML = `<tr><td colspan="6" class="empty">${esc(t('recovery.tableNoDataset'))}</td></tr>`;
+        updateRecoveryStats();
+        return;
+      }
+
+      if (r.filtered.length === 0) {
+        els.recoveryBody.innerHTML = `<tr><td colspan="6" class="empty">${esc(t('recovery.tableNoMatches'))}</td></tr>`;
+        updateRecoveryStats();
+        return;
+      }
+
+      els.recoveryBody.innerHTML = r.filtered.map((e) => {
+        const active = r.activeId === e.id ? 'active' : '';
+        return `
+          <tr class="data-row ${active}" data-event-id="${e.id}">
+            <td class="mono">${e.id}</td>
+            <td>${esc(fmtTime(e.timestamp))}</td>
+            <td>${roleBadge(e.role)}</td>
+            <td>${sourceBadge(e.sourceKind)}</td>
+            <td>${eventTag(e)}</td>
+            <td>
+              <div class="event-text" title="${esc(e.text || '')}">
+                <span class="one-line">${esc(e.text || '—')}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      updateRecoveryStats();
+    }
+
+    function renderRecoveryPreview(event) {
+      if (!event) {
+        els.recoveryPreview.innerHTML = `<div class="empty">${esc(t('recovery.previewEmpty'))}</div>`;
+        return;
+      }
+
+      const tags = [
+        eventTag(event),
+        sourceBadge(event.sourceKind),
+        roleBadge(event.role),
+      ].join(' ');
+
+      els.recoveryPreview.innerHTML = `
+        <div class="meta-grid">
+          <div class="meta-item">
+            <div class="meta-label">${esc(t('recovery.labelSessionId'))}</div>
+            <div class="meta-value mono">${esc(state.recovery.dataset?.sessionId || '')}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">${esc(t('recovery.labelEventNo'))}</div>
+            <div class="meta-value mono">${esc(event.id)}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">${esc(t('recovery.labelTimestamp'))}</div>
+            <div class="meta-value">${esc(fmtTime(event.timestamp))}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">${esc(t('recovery.labelLine'))}</div>
+            <div class="meta-value mono">${esc(event.sourceFile)}:${esc(event.lineNo)}</div>
+          </div>
+          <div class="meta-item wide">
+            <div class="meta-label">${esc(t('recovery.labelTag'))}</div>
+            <div class="meta-value">${tags}</div>
+          </div>
+        </div>
+
+        <details class="section" open>
+          <summary>${esc(t('recovery.fullContent'))}</summary>
+          <div class="section-body">${esc(event.text || '—')}</div>
+        </details>
+      `;
+    }
+
+    async function fetchRecoverySession(sessionId, includeSubagents) {
+      const url = `/api/recovery/session?sessionId=${encodeURIComponent(sessionId)}&includeSubagents=${includeSubagents ? '1' : '0'}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || t('common.httpError', { status: res.status }));
+      }
+      return res.json();
+    }
+
+    async function loadRecoverySession() {
+      const r = state.recovery;
+      const sid = String(els.recoverySessionId.value || '').trim();
+      r.sessionId = sid;
+
+      if (!SESSION_ID_RE.test(sid)) {
+        window.alert(t('recovery.invalidSessionId'));
+        return;
+      }
+
+      els.recoveryPreview.innerHTML = `<div class="empty">${esc(t('recovery.readingLogs'))}</div>`;
+      els.recoveryLoadBtn.disabled = true;
+
+      try {
+        const data = await fetchRecoverySession(sid, r.includeSubagents);
+        r.dataset = data;
+        r.events = Array.isArray(data.events) ? data.events : [];
+        r.activeId = null;
+
+        applyRecoveryFilter();
+        renderRecoveryTable();
+        renderRecoveryPreview(null);
+      } catch (error) {
+        r.dataset = null;
+        r.events = [];
+        r.filtered = [];
+        r.activeId = null;
+        renderRecoveryTable();
+        els.recoveryPreview.innerHTML = `<div class="danger-note">${esc(error.message)}</div>`;
+      } finally {
+        els.recoveryLoadBtn.disabled = false;
+      }
+    }
+
+    function findRecoveryEventById(id) {
+      return state.recovery.events.find((e) => e.id === id) || null;
+    }
+
+    function locateCompactEvent() {
+      const r = state.recovery;
+      if (!r.dataset || r.events.length === 0) return;
+
+      const compact = r.events.find((e) => e.isCompactSignal);
+      if (!compact) {
+        window.alert(t('recovery.noCompactFound'));
+        return;
+      }
+
+      // 为了看到压缩点，自动关闭“只看压缩前”。
+      if (r.preOnly) {
+        r.preOnly = false;
+        els.recoveryPreOnlyToggle.checked = false;
+        applyRecoveryFilter();
+        renderRecoveryTable();
+      }
+
+      r.activeId = compact.id;
+      renderRecoveryTable();
+      renderRecoveryPreview(compact);
+
+      const row = els.recoveryBody.querySelector(`tr[data-event-id="${compact.id}"]`);
+      if (row) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    function exportRecoveryMarkdown() {
+      const r = state.recovery;
+      if (!r.dataset || r.filtered.length === 0) {
+        window.alert(t('recovery.noExportRecords'));
+        return;
+      }
+
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const filename = `session-${r.dataset.sessionId}-recovery-${stamp}.md`;
+
+      const lines = [];
+      lines.push(`# Session Recovery Export`);
+      lines.push('');
+      lines.push(`- Session ID: \`${r.dataset.sessionId}\``);
+      lines.push(`- Project Dir: \`${r.dataset.projectDir || ''}\``);
+      lines.push(`- Exported At: ${new Date().toLocaleString()}`);
+      lines.push(`- Filters: role=${r.role}, preOnly=${r.preOnly}, query=${r.query || '(none)'}`);
+      lines.push(`- Visible Events: ${r.filtered.length}`);
+      lines.push('');
+
+      if (r.dataset.stats) {
+        lines.push('## Stats');
+        lines.push('');
+        lines.push(`- Total Events: ${r.dataset.stats.totalEvents}`);
+        lines.push(`- Pre-compact Events: ${r.dataset.stats.preCompactCount}`);
+        lines.push(`- Compact Signals: ${r.dataset.stats.compactSignalCount}`);
+        lines.push(`- First Compact At: ${r.dataset.stats.firstCompactAt || 'N/A'}`);
+        lines.push(`- Subagent Files: ${r.dataset.stats.subagentFiles}`);
+        lines.push(`- Compact Files: ${r.dataset.stats.compactFiles}`);
+        lines.push('');
+      }
+
+      lines.push('## Timeline');
+      lines.push('');
+
+      for (const e of r.filtered) {
+        lines.push(`### [${e.id}] ${fmtTime(e.timestamp)} | ${e.role.toUpperCase()} | ${e.sourceKind}`);
+        lines.push(`- Tag: ${e.isCompactSignal ? 'compact' : (e.isPreCompact ? 'pre' : 'post')}`);
+        lines.push(`- Source: \`${e.sourceFile}:${e.lineNo}\``);
+        lines.push('');
+        lines.push('```text');
+        lines.push(String(e.text || '').replace(/```/g, '``` '));
+        lines.push('```');
+        lines.push('');
+      }
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function bindManagerEvents() {
+      const m = state.manager;
+
+      els.searchInput.addEventListener('input', (e) => {
+        m.query = e.target.value || '';
+        applyManagerFilter();
+        renderManagerTable();
+      });
+
+      els.hideEmptyToggle.addEventListener('change', (e) => {
+        m.hideEmpty = Boolean(e.target.checked);
+        applyManagerFilter();
+        renderManagerTable();
+      });
+
+      els.refreshBtn.addEventListener('click', async () => {
+        await reloadManagerAndRender();
+      });
+
+      els.clearBtn.addEventListener('click', () => {
+        m.query = '';
+        els.searchInput.value = '';
+        applyManagerFilter();
+        renderManagerTable();
+      });
+
+      els.selectVisibleBtn.addEventListener('click', () => {
+        const keys = m.filtered.map((s) => s.key);
+        const visibleSelected = selectedKeysInCurrentList().length;
+
+        if (visibleSelected === keys.length && keys.length > 0) {
+          keys.forEach((k) => m.selected.delete(k));
+        } else {
+          keys.forEach((k) => m.selected.add(k));
+        }
+        renderManagerTable();
+      });
+
+      els.batchExportBtn.addEventListener('click', onBatchExportSelected);
+
+      els.rebuildIndexBtn.addEventListener('click', async () => {
+        els.rebuildIndexBtn.disabled = true;
+        try {
+          const result = await rebuildSessionIndex(false);
+          window.alert(t('manager.rebuildDone', { projects: result.projects, sessions: result.sessions }));
+          await reloadManagerAndRender();
+        } catch (error) {
+          window.alert(error.message);
+        } finally {
+          els.rebuildIndexBtn.disabled = false;
+        }
+      });
+
+      els.globalSearchBtn.addEventListener('click', async () => {
+        const q = String(els.globalSearchInput.value || '').trim();
+        if (!q) {
+          window.alert(t('manager.enterSearchKeyword'));
+          return;
+        }
+        els.globalSearchBtn.disabled = true;
+        m.globalSearchStatus = 'loading';
+        renderGlobalSearchInfo();
+        try {
+          const res = await fetchGlobalSearch(q, Boolean(els.globalSearchSubagentsToggle.checked), 200);
+          m.globalHits = Array.isArray(res.hits) ? res.hits : [];
+          m.globalSearchStatus = 'done';
+          m.globalSearchError = '';
+          renderGlobalSearchInfo();
+          renderGlobalSearchResults();
+        } catch (error) {
+          m.globalSearchStatus = 'error';
+          m.globalSearchError = error.message;
+          renderGlobalSearchInfo();
+          m.globalHits = [];
+          renderGlobalSearchResults();
+        } finally {
+          els.globalSearchBtn.disabled = false;
+        }
+      });
+
+      els.globalSearchClearBtn.addEventListener('click', () => {
+        m.globalHits = [];
+        els.globalSearchInput.value = '';
+        m.globalSearchStatus = 'idle';
+        m.globalSearchError = '';
+        renderGlobalSearchInfo();
+        renderGlobalSearchResults();
+      });
+
+      els.globalSearchBody.addEventListener('click', async (event) => {
+        const row = event.target.closest('tr[data-gkey]');
+        if (!row) return;
+        const key = row.getAttribute('data-gkey');
+        await activateManagerSessionByKey(key);
+      });
+
+      els.openRecoveryBtn.addEventListener('click', async () => {
+        if (!m.activeDetail?.sessionId) return;
+        switchView('recovery');
+        state.recovery.sessionId = m.activeDetail.sessionId;
+        els.recoverySessionId.value = m.activeDetail.sessionId;
+        await loadRecoverySession();
+      });
+
+      els.deleteBtn.addEventListener('click', onDeleteSelected);
+      els.managerFocusBtn.addEventListener('click', () => {
+        m.focusTable = !m.focusTable;
+        syncFocusTableUI();
+      });
+
+      els.sessionBody.addEventListener('click', async (event) => {
+        const checkbox = event.target.closest('input[data-role="select"]');
+        if (checkbox) {
+          const key = checkbox.getAttribute('data-key');
+          if (!key) return;
+          if (checkbox.checked) m.selected.add(key);
+          else m.selected.delete(key);
+          updateManagerStats();
+          return;
+        }
+
+        const row = event.target.closest('tr[data-key]');
+        if (!row) return;
+
+        const key = row.getAttribute('data-key');
+        if (!key) return;
+        await activateManagerSessionByKey(key);
+      });
+    }
+
+    function bindRecoveryEvents() {
+      const r = state.recovery;
+
+      els.recoveryLoadBtn.addEventListener('click', loadRecoverySession);
+
+      els.recoverySessionId.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          await loadRecoverySession();
+        }
+      });
+
+      els.recoverySearchInput.addEventListener('input', (e) => {
+        r.query = e.target.value || '';
+        applyRecoveryFilter();
+        renderRecoveryTable();
+      });
+
+      els.recoveryRoleSelect.addEventListener('change', (e) => {
+        r.role = e.target.value || 'all';
+        applyRecoveryFilter();
+        renderRecoveryTable();
+      });
+
+      els.recoveryPreOnlyToggle.addEventListener('change', (e) => {
+        r.preOnly = Boolean(e.target.checked);
+        applyRecoveryFilter();
+        renderRecoveryTable();
+      });
+
+      els.recoveryIncludeSubagentsToggle.addEventListener('change', (e) => {
+        r.includeSubagents = Boolean(e.target.checked);
+      });
+
+      els.recoveryClearFilterBtn.addEventListener('click', () => {
+        r.query = '';
+        r.role = 'all';
+        r.preOnly = true;
+        els.recoverySearchInput.value = '';
+        els.recoveryRoleSelect.value = 'all';
+        els.recoveryPreOnlyToggle.checked = true;
+        applyRecoveryFilter();
+        renderRecoveryTable();
+      });
+
+      els.recoveryLocateCompactBtn.addEventListener('click', locateCompactEvent);
+      els.recoveryExportBtn.addEventListener('click', exportRecoveryMarkdown);
+      els.recoveryFocusBtn.addEventListener('click', () => {
+        r.focusTable = !r.focusTable;
+        syncFocusTableUI();
+      });
+
+      els.recoveryBody.addEventListener('click', (event) => {
+        const row = event.target.closest('tr[data-event-id]');
+        if (!row) return;
+
+        const id = Number(row.getAttribute('data-event-id'));
+        if (!Number.isFinite(id)) return;
+
+        r.activeId = id;
+        renderRecoveryTable();
+        renderRecoveryPreview(findRecoveryEventById(id));
+      });
+    }
+
+    function bindTabEvents() {
+      for (const btn of els.tabs) {
+        btn.addEventListener('click', () => {
+          const view = btn.dataset.view;
+          if (!view) return;
+          switchView(view);
+        });
+      }
+
+      if (els.localeToggleBtn) {
+        els.localeToggleBtn.addEventListener('click', () => {
+          setLocale(state.locale === 'en' ? 'zh' : 'en');
+        });
+      }
+    }
+
+    async function init() {
+      bindTabEvents();
+      bindManagerEvents();
+      bindRecoveryEvents();
+      applyI18n();
+
+      els.hideEmptyToggle.checked = state.manager.hideEmpty;
+      els.recoveryPreOnlyToggle.checked = state.recovery.preOnly;
+      els.recoveryIncludeSubagentsToggle.checked = state.recovery.includeSubagents;
+      syncFocusTableUI();
+
+      try {
+        await reloadManagerAndRender();
+      } catch (error) {
+        els.sessionBody.innerHTML = `<tr><td colspan="9" class="empty">${esc(error.message)}</td></tr>`;
+      }
+
+      renderRecoveryTable();
+      renderRecoveryPreview(null);
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# OS
+.DS_Store
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env and local config
+.env
+.env.*
+!.env.example
+.claude/
+
+# Logs and temp
+*.log
+*.pid
+*.tmp
+*.swp
+*~
+
+# Build / test artifacts
+coverage/
+dist/
+
+# Local snapshots (may contain local paths / WIP UI states)
+snapshots/
