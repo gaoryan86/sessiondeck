@@ -16,6 +16,8 @@ const SESSION_FILE_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-
 const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COMPACT_NAME_RE = /agent-acompact-/i;
 const CUSTOM_META_PATH = path.join(CLAUDE_PROJECTS, '.session-web-manager.meta.json');
+const DELETION_LOG_PATH = path.join(CLAUDE_PROJECTS, '.sessiondeck-deletion-log.json');
+const DELETION_LOG_LIMIT = 2000;
 
 const sessionMetaCache = new Map();
 
@@ -139,6 +141,190 @@ function parseTimeSafe(value) {
 
 function isValidSessionId(value) {
   return SESSION_ID_RE.test(String(value || ''));
+}
+
+function makeLogId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function normalizeDeletionLogEntry(raw) {
+  const entry = raw && typeof raw === 'object' ? raw : {};
+  return {
+    id: normalizeText(entry.id) || makeLogId(),
+    action: 'delete',
+    status: normalizeText(entry.status) || 'deleted',
+    sessionId: normalizeText(entry.sessionId),
+    fullPath: normalizeText(entry.fullPath),
+    indexPath: normalizeText(entry.indexPath),
+    key: normalizeText(entry.key),
+    reason: normalizeText(entry.reason),
+    trashPath: normalizeText(entry.trashPath),
+    deletedAt: normalizeText(entry.deletedAt) || new Date().toISOString(),
+    restoredAt: normalizeText(entry.restoredAt),
+    restoredFrom: normalizeText(entry.restoredFrom),
+  };
+}
+
+function readDeletionLogStore() {
+  const raw = readJsonSafe(DELETION_LOG_PATH);
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { version: 1, entries: [] };
+  }
+
+  const entries = Array.isArray(raw.entries)
+    ? raw.entries
+      .map((item) => normalizeDeletionLogEntry(item))
+      .filter((item) => item.sessionId && item.fullPath)
+    : [];
+
+  return {
+    version: Number(raw.version || 1),
+    entries,
+  };
+}
+
+function writeDeletionLogStore(store) {
+  const entries = Array.isArray(store?.entries) ? store.entries : [];
+  const next = {
+    version: 1,
+    entries: entries.slice(-DELETION_LOG_LIMIT),
+  };
+  writeJsonAtomic(DELETION_LOG_PATH, next);
+}
+
+function appendDeletionLogEntries(entries) {
+  const nextItems = Array.isArray(entries) ? entries : [];
+  if (nextItems.length === 0) return;
+  const store = readDeletionLogStore();
+  for (const item of nextItems) {
+    const normalized = normalizeDeletionLogEntry(item);
+    if (!normalized.sessionId || !normalized.fullPath) {
+      continue;
+    }
+    store.entries.push(normalized);
+  }
+  writeDeletionLogStore(store);
+}
+
+function listDeletionLogEntries(limit = 300) {
+  const cap = Math.max(1, Math.min(2000, Number(limit) || 300));
+  const store = readDeletionLogStore();
+  return store.entries
+    .slice()
+    .sort((a, b) => (parseTimeSafe(b.deletedAt) || 0) - (parseTimeSafe(a.deletedAt) || 0))
+    .slice(0, cap);
+}
+
+function listTrashRoots() {
+  const roots = [];
+  const home = os.homedir();
+  if (process.platform === 'darwin') {
+    roots.push(path.join(home, '.Trash'));
+  } else if (process.platform === 'win32') {
+    roots.push(path.join(home, '.Trash'));
+  } else {
+    const xdgDataHome = process.env.XDG_DATA_HOME
+      ? path.resolve(process.env.XDG_DATA_HOME)
+      : path.join(home, '.local', 'share');
+    roots.push(path.join(xdgDataHome, 'Trash', 'files'));
+    roots.push(path.join(home, '.Trash'));
+  }
+  return [...new Set(roots)].filter((p) => fs.existsSync(p));
+}
+
+function extractSessionIdFromTrashName(filename) {
+  const name = String(filename || '');
+  const match = name.match(/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\s+\d+)?\.jsonl$/i);
+  return match ? match[1].toLowerCase() : '';
+}
+
+function scanTrashSessionCandidates({ limitPerSession = 20 } = {}) {
+  const maxPerSession = Math.max(1, Math.min(200, Number(limitPerSession) || 20));
+  const map = new Map();
+  const roots = listTrashRoots();
+
+  for (const root of roots) {
+    const stack = [root];
+    while (stack.length > 0) {
+      const dir = stack.pop();
+      let entries = [];
+      try {
+        entries = fs.readdirSync(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          stack.push(fullPath);
+          continue;
+        }
+        if (!entry.isFile()) {
+          continue;
+        }
+
+        const sessionId = extractSessionIdFromTrashName(entry.name);
+        if (!sessionId) {
+          continue;
+        }
+
+        const stat = tryReadStat(fullPath);
+        if (!stat) {
+          continue;
+        }
+
+        if (!map.has(sessionId)) {
+          map.set(sessionId, []);
+        }
+        const list = map.get(sessionId);
+        list.push({
+          path: fullPath,
+          size: Number(stat.size || 0),
+          mtimeMs: Number(stat.mtimeMs || 0),
+          mtime: fileTimeToIso(stat.mtimeMs),
+        });
+      }
+    }
+  }
+
+  for (const [sessionId, list] of map.entries()) {
+    list.sort((a, b) => (b.mtimeMs || 0) - (a.mtimeMs || 0));
+    map.set(sessionId, list.slice(0, maxPerSession));
+  }
+
+  return map;
+}
+
+function pickBestTrashCandidate(candidates, deletedAt) {
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return null;
+  }
+
+  const deletedAtMs = parseTimeSafe(deletedAt);
+  if (!Number.isFinite(deletedAtMs)) {
+    return candidates[0];
+  }
+
+  const afterDelete = candidates.find((c) => Number(c?.mtimeMs || 0) >= deletedAtMs - 2 * 60 * 1000);
+  return afterDelete || candidates[0];
+}
+
+function updateDeletionLogEntry(logId, updater) {
+  const id = normalizeText(logId);
+  if (!id) {
+    return null;
+  }
+  const store = readDeletionLogStore();
+  const idx = store.entries.findIndex((item) => normalizeText(item.id) === id);
+  if (idx < 0) {
+    return null;
+  }
+  const current = normalizeDeletionLogEntry(store.entries[idx]);
+  const updated = normalizeDeletionLogEntry(updater(current));
+  store.entries[idx] = updated;
+  writeDeletionLogStore(store);
+  return updated;
 }
 
 function listProjectDirs() {
@@ -812,6 +998,12 @@ function ensureTrashCommand() {
   return probe.status === 0;
 }
 
+function parseTrashDestination(output) {
+  const raw = String(output || '');
+  const match = raw.match(/to "([^"]+)"\s*$/m);
+  return match ? normalizeText(match[1]) : '';
+}
+
 function writeJsonAtomic(filePath, data) {
   const tempPath = `${filePath}.tmp.${Date.now()}`;
   fs.writeFileSync(tempPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
@@ -831,20 +1023,53 @@ function deleteSessions(keys) {
 
   const grouped = new Map();
   const details = [];
+  const deletionLogs = [];
+  const nowIso = new Date().toISOString();
 
   for (const rawKey of keys) {
     const meta = decodeKey(rawKey);
     if (!meta) {
       details.push({ key: rawKey, ok: false, reason: '无效 key' });
+      deletionLogs.push({
+        id: makeLogId(),
+        action: 'delete',
+        status: 'invalid_key',
+        sessionId: '',
+        fullPath: '',
+        indexPath: '',
+        key: rawKey,
+        reason: 'invalid key',
+        deletedAt: nowIso,
+      });
       continue;
     }
 
+    let status = 'deleted';
+    let reason = '';
+    let trashPath = '';
     if (fs.existsSync(meta.fullPath)) {
-      const moved = spawnSync('trash', [meta.fullPath], { encoding: 'utf8' });
+      const moved = spawnSync('trash', ['-v', meta.fullPath], { encoding: 'utf8' });
       if (moved.status !== 0) {
-        details.push({ key: rawKey, ok: false, reason: moved.stderr || 'trash 失败' });
+        reason = moved.stderr || 'trash 失败';
+        details.push({ key: rawKey, ok: false, reason });
+        deletionLogs.push({
+          id: makeLogId(),
+          action: 'delete',
+          status: 'trash_failed',
+          sessionId: meta.sessionId,
+          fullPath: meta.fullPath,
+          indexPath: meta.indexPath,
+          key: rawKey,
+          reason,
+          trashPath: '',
+          deletedAt: nowIso,
+        });
         continue;
       }
+      trashPath = parseTrashDestination(moved.stdout);
+    } else {
+      status = 'missing_file';
+      reason = '源文件不存在，仅清理索引';
     }
 
     if (meta.indexPath) {
@@ -855,6 +1080,18 @@ function deleteSessions(keys) {
     }
 
     details.push({ key: rawKey, ok: true, reason: '' });
+    deletionLogs.push({
+      id: makeLogId(),
+      action: 'delete',
+      status,
+      sessionId: meta.sessionId,
+      fullPath: meta.fullPath,
+      indexPath: meta.indexPath,
+      key: rawKey,
+      reason,
+      trashPath,
+      deletedAt: nowIso,
+    });
   }
 
   for (const [indexPath, sidSet] of grouped.entries()) {
@@ -868,6 +1105,7 @@ function deleteSessions(keys) {
   }
 
   sessionMetaCache.clear();
+  appendDeletionLogEntries(deletionLogs.filter((item) => item.sessionId && item.fullPath));
 
   const deleted = details.filter((d) => d.ok).length;
   const failed = details.length - deleted;
@@ -907,6 +1145,185 @@ function buildIndexEntryForFile(filePath, sessionId, existingEntry = null) {
     projectPath: fileMeta.projectPath || normalizeText(existingEntry?.projectPath),
     isSidechain: Boolean(branchMeta.isSidechain || existingEntry?.isSidechain),
   };
+}
+
+function upsertSessionIndexEntry(indexPath, sessionId, fullPath) {
+  const safeIndexPath = normalizeText(indexPath)
+    || path.join(path.dirname(fullPath), 'sessions-index.json');
+
+  if (!isPathUnder(CLAUDE_PROJECTS, safeIndexPath)) {
+    return null;
+  }
+
+  const existingData = readJsonSafe(safeIndexPath);
+  const existingEntries = Array.isArray(existingData?.entries) ? existingData.entries : [];
+  const candidate = existingEntries.find((entry) => {
+    return normalizeText(entry?.sessionId) === sessionId
+      || normalizeText(entry?.fullPath) === fullPath;
+  }) || null;
+
+  const nextEntry = buildIndexEntryForFile(fullPath, sessionId, candidate);
+  const filtered = existingEntries.filter((entry) => {
+    return normalizeText(entry?.sessionId) !== sessionId
+      && normalizeText(entry?.fullPath) !== fullPath;
+  });
+  filtered.push(nextEntry);
+  filtered.sort((a, b) => {
+    const bt = parseTimeSafe(b.modified || b.created) || 0;
+    const at = parseTimeSafe(a.modified || a.created) || 0;
+    return bt - at;
+  });
+
+  const nextData = {
+    ...(existingData && typeof existingData === 'object' && !Array.isArray(existingData) ? existingData : {}),
+    version: Number(existingData?.version || 1),
+    entries: filtered,
+  };
+
+  writeJsonAtomic(safeIndexPath, nextData);
+  return nextEntry;
+}
+
+function moveFileAtomic(fromPath, toPath) {
+  try {
+    fs.renameSync(fromPath, toPath);
+    return;
+  } catch (error) {
+    if (error?.code !== 'EXDEV') {
+      throw error;
+    }
+  }
+
+  fs.copyFileSync(fromPath, toPath);
+  fs.unlinkSync(fromPath);
+}
+
+function restoreDeletedSessionByLogId(logId, preferredTrashPath = '') {
+  const id = normalizeText(logId);
+  if (!id) {
+    return { ok: false, error: 'id 不能为空' };
+  }
+
+  const store = readDeletionLogStore();
+  const entry = store.entries.find((item) => normalizeText(item.id) === id);
+  if (!entry) {
+    return { ok: false, error: '找不到删除日志' };
+  }
+
+  const sessionId = normalizeText(entry.sessionId);
+  const fullPath = normalizeText(entry.fullPath);
+  const indexPath = normalizeText(entry.indexPath);
+  const deletedAt = normalizeText(entry.deletedAt);
+  const loggedTrashPath = normalizeText(entry.trashPath);
+  if (!sessionId || !fullPath) {
+    return { ok: false, error: '删除日志不完整' };
+  }
+  if (!isPathUnder(CLAUDE_PROJECTS, fullPath)) {
+    return { ok: false, error: '目标路径不在会话根目录内，拒绝恢复' };
+  }
+  if (fs.existsSync(fullPath)) {
+    return { ok: false, error: '目标会话文件已存在，跳过恢复' };
+  }
+
+  let candidate = null;
+
+  const preferred = normalizeText(preferredTrashPath);
+  if (preferred && fs.existsSync(preferred)) {
+    const stat = tryReadStat(preferred);
+    candidate = {
+      path: preferred,
+      size: Number(stat?.size || 0),
+      mtimeMs: Number(stat?.mtimeMs || 0),
+      mtime: fileTimeToIso(stat?.mtimeMs),
+    };
+  }
+
+  if (!candidate) {
+    if (loggedTrashPath && fs.existsSync(loggedTrashPath)) {
+      const stat = tryReadStat(loggedTrashPath);
+      candidate = {
+        path: loggedTrashPath,
+        size: Number(stat?.size || 0),
+        mtimeMs: Number(stat?.mtimeMs || 0),
+        mtime: fileTimeToIso(stat?.mtimeMs),
+      };
+    }
+  }
+
+  if (!candidate) {
+    const trashMap = scanTrashSessionCandidates({ limitPerSession: 30 });
+    const candidates = trashMap.get(sessionId.toLowerCase()) || [];
+    candidate = pickBestTrashCandidate(candidates, deletedAt);
+  }
+  if (!candidate || !fs.existsSync(candidate.path)) {
+    return { ok: false, error: '废纸篓中未找到可恢复文件' };
+  }
+
+  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+  moveFileAtomic(candidate.path, fullPath);
+  const nextEntry = upsertSessionIndexEntry(indexPath, sessionId, fullPath);
+  sessionMetaCache.clear();
+
+  const updatedLog = updateDeletionLogEntry(id, (current) => ({
+    ...current,
+    status: 'restored',
+    restoredAt: new Date().toISOString(),
+    restoredFrom: candidate.path,
+  }));
+
+  return {
+    ok: true,
+    id,
+    sessionId,
+    fullPath,
+    indexPath: indexPath || path.join(path.dirname(fullPath), 'sessions-index.json'),
+    restoredFrom: candidate.path,
+    restoredAt: updatedLog?.restoredAt || new Date().toISOString(),
+    indexEntry: nextEntry,
+  };
+}
+
+function listTrashRecoverable(limit = 300) {
+  const cap = Math.max(1, Math.min(2000, Number(limit) || 300));
+  const logEntries = listDeletionLogEntries(DELETION_LOG_LIMIT);
+  let trashMap = null;
+
+  const items = [];
+  for (const item of logEntries) {
+    let best = null;
+    const loggedTrashPath = normalizeText(item.trashPath);
+    if (loggedTrashPath && fs.existsSync(loggedTrashPath)) {
+      const stat = tryReadStat(loggedTrashPath);
+      best = {
+        path: loggedTrashPath,
+        mtimeMs: Number(stat?.mtimeMs || 0),
+        mtime: fileTimeToIso(stat?.mtimeMs),
+        size: Number(stat?.size || 0),
+      };
+    }
+
+    if (!best) {
+      if (!trashMap) {
+        trashMap = scanTrashSessionCandidates({ limitPerSession: 30 });
+      }
+      const sessionId = normalizeText(item.sessionId).toLowerCase();
+      const candidates = trashMap.get(sessionId) || [];
+      best = pickBestTrashCandidate(candidates, item.deletedAt);
+    }
+
+    items.push({
+      ...item,
+      canRecover: Boolean(best),
+      trashPath: normalizeText(best?.path) || loggedTrashPath,
+      trashMtime: normalizeText(best?.mtime),
+      trashSize: Number(best?.size || 0),
+    });
+    if (items.length >= cap) {
+      break;
+    }
+  }
+
+  return items;
 }
 
 function rebuildSessionIndexes({ dryRun = false } = {}) {
@@ -1259,6 +1676,26 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && pathname === '/api/deletion-log') {
+    const limit = Number(reqUrl.searchParams.get('limit') || 300);
+    const entries = listDeletionLogEntries(limit);
+    sendJson(res, 200, {
+      count: entries.length,
+      entries,
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/trash-recoverable') {
+    const limit = Number(reqUrl.searchParams.get('limit') || 300);
+    const entries = listTrashRecoverable(limit);
+    sendJson(res, 200, {
+      count: entries.length,
+      entries,
+    });
+    return;
+  }
+
   if (req.method === 'GET' && pathname === '/api/recovery/session') {
     const sessionId = normalizeText(reqUrl.searchParams.get('sessionId'));
     const includeSubagents = reqUrl.searchParams.get('includeSubagents') !== '0';
@@ -1373,6 +1810,32 @@ const server = http.createServer(async (req, res) => {
 
       const result = deleteSessions(keys);
       sendJson(res, result.ok ? 200 : 207, result);
+      return;
+    } catch (error) {
+      sendJson(res, 400, { error: `请求错误: ${error.message}` });
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && pathname === '/api/recover') {
+    try {
+      const bodyRaw = await readRequestBody(req);
+      const body = JSON.parse(bodyRaw || '{}');
+      const id = normalizeText(body?.id);
+      const trashPath = normalizeText(body?.trashPath);
+
+      if (!id) {
+        sendJson(res, 400, { error: 'id 不能为空' });
+        return;
+      }
+
+      const result = restoreDeletedSessionByLogId(id, trashPath);
+      if (!result.ok) {
+        sendJson(res, 400, result);
+        return;
+      }
+
+      sendJson(res, 200, result);
       return;
     } catch (error) {
       sendJson(res, 400, { error: `请求错误: ${error.message}` });

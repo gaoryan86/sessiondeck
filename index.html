@@ -1,143 +1,136 @@
 <!doctype html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SessionDeck</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
     :root {
-      --bg: #050607;
-      --bg-2: #070b0d;
-      --panel: #0a1014;
-      --panel-2: #0d151a;
-      --panel-3: #0a0f12;
-      --border: #253842;
-      --text: #e6f3f9;
-      --muted: #85a3ad;
-      --accent: #6f9dac;
-      --accent-soft: #1a2b33;
-      --danger: #ff4d4f;
-      --danger-soft: #311114;
-      --row-hover: #0c1e26;
-      --selected: #11323f;
-      --tab: #0a1014;
-      --tab-active: #0f232e;
-      --compact: #ffbf00;
-      --pre: #8fb6c2;
-      --ink-soft: #d6edf7;
-      --shadow: 0 16px 36px rgba(0, 0, 0, 0.46);
-      --grid: rgba(120, 147, 158, 0.06);
-      --line-hot: #ffbf00;
-      --line-live: #ff4d4f;
+      --bg: #050505;
+      --bg-2: #050505;
+      --panel: #0a0a0a;
+      --panel-2: #111111;
+      --panel-3: #161616;
+      --border: #1f1f1f;
+      --text: #ededed;
+      --muted: #888888;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.15);
+      --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --row-hover: #141414;
+      --selected: #1a1a1a;
+      --tab: transparent;
+      --tab-active: #ffffff;
+      --ink-soft: #cccccc;
+      --grid: rgba(255, 255, 255, 0.03);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       color: var(--text);
-      font-family: "Space Grotesk", "Avenir Next", "PingFang SC", "Noto Sans CJK SC", sans-serif;
-      background:
-        radial-gradient(900px 420px at 85% -8%, rgba(255, 191, 0, 0.14) 0%, transparent 52%),
-        radial-gradient(1200px 760px at -8% 108%, rgba(99, 128, 140, 0.07) 0%, transparent 60%),
+      font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      background-color: var(--bg);
+      background-image:
         repeating-linear-gradient(0deg, transparent 0 37px, var(--grid) 37px 38px),
-        repeating-linear-gradient(90deg, transparent 0 37px, var(--grid) 37px 38px),
-        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
-      letter-spacing: 0.1px;
-      position: relative;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(180deg, rgba(255, 191, 0, 0.05) 0, transparent 70px),
-        linear-gradient(90deg, transparent 0 70%, rgba(111, 157, 172, 0.04) 100%);
-      mix-blend-mode: screen;
-      z-index: -1;
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px);
-      opacity: 0.07;
-      z-index: -1;
+        repeating-linear-gradient(90deg, transparent 0 37px, var(--grid) 37px 38px);
+      letter-spacing: 0.2px;
     }
 
     *::-webkit-scrollbar {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
     }
 
     *::-webkit-scrollbar-track {
-      background: #060d11;
+      background: var(--bg);
     }
 
     *::-webkit-scrollbar-thumb {
-      background: #2e434c;
-      border: 1px solid #1d2f36;
-      border-radius: 3px;
+      background: #2a2a2a;
+      border: 1px solid var(--bg);
+      border-radius: 4px;
     }
 
     *::-webkit-scrollbar-thumb:hover {
-      background: #3b5560;
+      background: #4a4a4a;
     }
 
     .page {
       max-width: 1960px;
       margin: 0 auto;
-      padding: 14px;
+      padding: 16px;
       display: grid;
-      gap: 10px;
-    }
-
-    .tabbar {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: color-mix(in srgb, var(--panel) 92%, transparent);
-      box-shadow: var(--shadow);
-      width: fit-content;
+      gap: 12px;
     }
 
     .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 16px;
       flex-wrap: wrap;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    .branding {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding-left: 4px;
+    }
+
+    .branding-icon {
+      width: 12px;
+      height: 12px;
+      background: var(--text);
+      border-radius: 2px;
+    }
+
+    .tabbar {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      margin-left: 20px;
     }
 
     .topbar-right {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
     }
 
     .live-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border: 1px solid #7d2a2e;
-      background: #2b0e12;
-      color: #ffd2d7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
       font-size: 10px;
-      letter-spacing: 0.7px;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      border-radius: 3px;
-      padding: 6px 8px;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      border-radius: 4px;
+      padding: 4px 8px;
       font-weight: 600;
       line-height: 1;
     }
@@ -146,60 +139,58 @@
       width: 6px;
       height: 6px;
       border-radius: 999px;
-      background: #ff4d4f;
-      box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.72);
-      animation: livePulse 1.4s infinite;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+      animation: livePulse 2s infinite;
     }
 
     @keyframes livePulse {
-      0% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.72); }
-      70% { box-shadow: 0 0 0 9px rgba(255, 77, 79, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
     }
 
     .locale-btn {
-      min-width: 72px;
+      min-width: 48px;
     }
 
     .tab-btn {
-      border: 1px solid #3a5059;
-      background: var(--tab);
-      color: #c0d0d7;
-      padding: 7px 12px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 12px;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;
+      font-family: inherit;
       text-transform: uppercase;
-      letter-spacing: 0.62px;
+      letter-spacing: 0.5px;
       font-weight: 600;
-      opacity: 0.78;
-      transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease, opacity 120ms ease;
+      transition: color 150ms ease, background 150ms ease;
     }
 
     .tab-btn:hover {
-      border-color: #5a737d;
-      color: #eef5f8;
+      color: var(--text);
+      background: var(--panel-2);
     }
 
     .tab-btn.active {
-      color: #f3fcff;
-      opacity: 1;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.14);
+      color: var(--bg);
+      background: var(--text);
     }
 
-    .tab-btn[data-view="manager"].active {
-      background: linear-gradient(180deg, #123848 0%, #0d2330 100%);
-      border-color: #84bdd6;
-      box-shadow: inset 0 -2px 0 #93c8df, 0 0 0 1px rgba(131, 189, 214, 0.22);
+    .view {
+      display: none;
     }
 
-    .tab-btn[data-view="recovery"].active {
-      background: linear-gradient(180deg, #3a2c14 0%, #251d0f 100%);
-      border-color: #d2ac60;
-      box-shadow: inset 0 -2px 0 #d2ac60, 0 0 0 1px rgba(210, 172, 96, 0.2);
-    }
-
-    .view { display: none; }
     .view.active {
       display: grid;
       gap: 10px;
@@ -207,46 +198,29 @@
     }
 
     .toolbar {
-      background: color-mix(in srgb, var(--panel) 96%, transparent);
+      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 4px;
       padding: 12px;
       display: grid;
-      gap: 10px;
-      box-shadow: var(--shadow);
-      position: relative;
+      gap: 12px;
       overflow: hidden;
     }
 
-    .toolbar::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #6f9dac 0%, #6f9dac 35%, #d0a867 72%, #d06f74 100%);
-      opacity: 0.86;
-      pointer-events: none;
-    }
-
     .title {
-      font-family: "Sora", "Space Grotesk", sans-serif;
-      font-size: 25px;
-      font-weight: 650;
-      letter-spacing: 0.25px;
-      line-height: 1.04;
-      color: #f3fbff;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text);
       text-transform: uppercase;
-      text-shadow: 0 0 14px rgba(111, 157, 172, 0.09);
     }
 
     .sub {
       color: var(--muted);
       font-size: 11px;
-      letter-spacing: 0.34px;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      letter-spacing: 0.2px;
       word-break: break-all;
+      margin-top: 4px;
     }
 
     .controls {
@@ -268,73 +242,135 @@
       flex-wrap: wrap;
     }
 
+    .manager-primary-controls {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .manager-primary-controls .controls-left {
+      min-width: 0;
+      flex: unset;
+    }
+
+    .manager-primary-controls .controls-right {
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      max-width: 100%;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+    }
+
+    .manager-primary-controls .toggle,
+    .manager-primary-controls .btn {
+      flex: 0 0 auto;
+    }
+
     .input,
     .select {
       width: 100%;
-      background: #0b1217;
+      background: transparent;
       color: var(--text);
-      border: 1px solid #3a5059;
-      border-radius: 4px;
-      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 10px;
       font-size: 12px;
+      font-family: inherit;
       outline: none;
+      transition: border-color 150ms ease;
     }
 
     .input:focus,
     .select:focus {
-      border-color: #7ea5b2;
-      box-shadow: 0 0 0 2px rgba(126, 165, 178, 0.16);
+      border-color: var(--muted);
     }
 
     .btn {
-      border: 1px solid #425963;
-      background: var(--panel-2);
+      border: 1px solid var(--border);
+      background: transparent;
       color: var(--text);
-      border-radius: 4px;
-      padding: 7px 11px;
+      border-radius: 2px;
+      padding: 6px 12px;
       cursor: pointer;
       font-size: 11px;
+      font-family: inherit;
       white-space: nowrap;
-      letter-spacing: 0.45px;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
       font-weight: 600;
+      transition: all 150ms ease;
     }
 
     .btn:hover {
-      background: #1a262d;
-      border-color: #637c86;
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
     }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
 
     .btn-danger {
-      border-color: #7f2d33;
-      background: var(--danger-soft);
-      color: #ffd4d8;
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: var(--bg);
+      border-color: var(--danger);
     }
 
     .btn-accent {
-      border-color: #5e7983;
-      background: var(--accent-soft);
-      color: #d5e4ea;
+      border-color: rgba(59, 130, 246, 0.4);
+      color: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .btn-timeline {
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--warning);
+    }
+
+    .btn-timeline:hover {
+      background: var(--warning);
+      color: var(--bg);
+      border-color: var(--warning);
     }
 
     .toggle {
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      padding: 7px 9px;
-      border: 1px solid #3a5059;
-      background: #0f171d;
-      border-radius: 4px;
+      padding: 6px 10px;
+      border: 1px dashed var(--border);
+      background: transparent;
+      border-radius: 2px;
       font-size: 11px;
-      color: #bcced6;
+      color: var(--muted);
       user-select: none;
       cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .toggle:hover {
+      border-color: var(--muted);
+      color: var(--text);
     }
 
     .toggle input {
       margin: 0;
-      accent-color: #7ea5b2;
+      accent-color: var(--accent);
     }
 
     .layout {
@@ -356,40 +392,28 @@
     }
 
     .panel {
-      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 4px;
       overflow: hidden;
       display: grid;
       grid-template-rows: auto 1fr;
       min-height: 0;
-      box-shadow: var(--shadow);
-      position: relative;
-    }
-
-    .panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      border-top: 1px solid rgba(111, 157, 172, 0.26);
-      opacity: 0.65;
     }
 
     .panel-head {
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 7px;
+      gap: 8px;
       font-size: 11px;
-      color: #b7c4ca;
+      color: var(--muted);
       flex-wrap: wrap;
-      background: linear-gradient(180deg, rgba(111, 157, 172, 0.07) 0%, rgba(0, 0, 0, 0) 100%);
+      background: var(--panel-2);
       text-transform: uppercase;
-      letter-spacing: 0.36px;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      letter-spacing: 0.5px;
     }
 
     .table-wrap {
@@ -403,55 +427,55 @@
       min-width: 1080px;
     }
 
-    th, td {
-      border-bottom: 1px solid #314751;
-      padding: 6px 6px;
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 8px 10px;
       text-align: left;
       vertical-align: top;
       font-size: 11px;
-      line-height: 1.22;
-    }
-
-    td:nth-child(2),
-    td:nth-child(3),
-    td:nth-child(4) {
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-      color: #d0dce2;
+      line-height: 1.4;
     }
 
     th {
       position: sticky;
       top: 0;
       z-index: 2;
-      background: #111a20;
-      color: #c4d2d8;
+      background: var(--panel-2);
+      color: var(--text);
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.56px;
-      border-bottom: 1px solid #45616d;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
     }
 
-    tr.data-row { cursor: pointer; }
-    tr.data-row:hover { background: var(--row-hover); }
+    tr.data-row {
+      cursor: pointer;
+      transition: background 150ms;
+    }
+
+    tr.data-row:hover {
+      background: var(--row-hover);
+    }
+
     tr.data-row.active {
       background: var(--selected);
-      box-shadow: inset 2px 0 0 #7ea5b2;
+      box-shadow: inset 2px 0 0 var(--success);
     }
 
     .mono {
-      font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
-      font-size: 10px;
-      letter-spacing: 0.1px;
+      font-size: 11px;
     }
 
     .ellipsis {
       display: -webkit-box;
       -webkit-line-clamp: 1;
+      line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
       max-width: 400px;
-      line-height: 1.25;
-      color: var(--ink-soft);
+      line-height: 1.4;
+      color: var(--muted);
     }
 
     .one-line {
@@ -467,7 +491,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #b4c4cb;
+      color: var(--text);
     }
 
     .preview {
@@ -483,179 +507,196 @@
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
+      gap: 8px;
     }
 
     .meta-item {
-      background: #0f171d;
-      border: 1px solid #314b56;
-      border-radius: 4px;
-      padding: 6px 8px;
-      min-height: 44px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 2px;
+      padding: 8px 10px;
+      min-height: 48px;
       display: grid;
       align-content: start;
-      gap: 3px;
+      gap: 4px;
     }
 
-    .meta-item.wide { grid-column: 1 / -1; }
+    .meta-item.wide {
+      grid-column: 1 / -1;
+    }
 
     .meta-label {
-      color: #b0c1c9;
+      color: var(--muted);
       font-size: 10px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
 
     .meta-value {
-      line-height: 1.24;
+      line-height: 1.4;
       word-break: break-word;
-      font-size: 12px;
+      font-size: 11px;
+      color: var(--text);
     }
 
     .section {
-      background: #0e151b;
-      border: 1px solid #314b56;
-      border-radius: 4px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2px;
       overflow: hidden;
     }
 
     .section summary {
       cursor: pointer;
       list-style: none;
-      padding: 6px 8px;
+      padding: 8px 10px;
       font-size: 11px;
-      color: #bdcbd1;
-      border-bottom: 1px solid #314b56;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
       user-select: none;
       text-transform: uppercase;
-      letter-spacing: 0.36px;
+      letter-spacing: 0.5px;
     }
 
-    .section summary::-webkit-details-marker { display: none; }
+    .section summary::-webkit-details-marker {
+      display: none;
+    }
 
     .section .section-body {
-      padding: 7px 8px;
-      font-size: 12px;
-      line-height: 1.38;
+      padding: 8px 10px;
+      font-size: 11px;
+      line-height: 1.4;
       word-break: break-word;
       white-space: pre-wrap;
-      max-height: 220px;
+      max-height: 240px;
       overflow: auto;
+      background: var(--panel-2);
+      color: var(--text);
     }
 
-    .section.compact .section-body { max-height: 96px; }
+    .section.compact .section-body {
+      max-height: 120px;
+    }
 
     .hint-box {
-      border: 1px dashed #4b6570;
-      color: #c1d0d6;
-      border-radius: 4px;
-      padding: 7px 8px;
+      border: 1px dashed var(--muted);
+      color: var(--muted);
+      border-radius: 2px;
+      padding: 8px 10px;
       font-size: 11px;
-      background: rgba(22, 36, 43, 0.52);
+      background: transparent;
     }
 
-    .muted { color: var(--muted); }
+    .muted {
+      color: var(--muted);
+    }
 
     #globalSearchInfo {
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-      color: #b8c9d0;
-      letter-spacing: 0.24px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px dashed var(--border);
+      border-radius: 2px;
+      background: transparent;
+      padding: 4px 10px;
+      min-height: 28px;
+      white-space: nowrap;
+      font-size: 10px;
+      text-transform: uppercase;
+      pointer-events: none;
     }
 
     .pill {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      border: 1px solid #314b56;
-      background: #0f171d;
-      color: #cad7dc;
-      border-radius: 3px;
-      padding: 2px 8px;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 2px;
+      padding: 4px 10px;
       font-size: 10px;
-      letter-spacing: 0.32px;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
       font-weight: 600;
-      line-height: 1.5;
+      line-height: 1;
     }
 
     #countPill {
-      border-color: #56707a;
-      box-shadow: inset 0 -1px 0 rgba(111, 157, 172, 0.3);
+      border-color: var(--border);
     }
 
     #selectedPill {
-      border-color: #7b5b18;
-      color: #ffe9b8;
-      background: #1e1909;
-      box-shadow: inset 0 -1px 0 rgba(255, 191, 0, 0.5);
+      border-color: var(--accent);
+      color: var(--bg);
+      background: var(--accent);
     }
 
     #recoveryCountPill {
-      border-color: #56707a;
-      box-shadow: inset 0 -1px 0 rgba(111, 157, 172, 0.3);
+      border-color: var(--border);
     }
 
     #recoveryCompactPill {
-      border-color: #7e2f35;
-      color: #ffd7dd;
-      background: #2a1014;
-      box-shadow: inset 0 -1px 0 rgba(255, 77, 79, 0.55);
+      border-color: var(--danger);
+      color: var(--danger);
+      background: var(--danger-soft);
     }
 
     #recoveryPrePill {
-      border-color: #7b5b18;
-      color: #ffe9b8;
-      background: #1e1909;
-      box-shadow: inset 0 -1px 0 rgba(255, 191, 0, 0.5);
+      border-color: var(--warning);
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.15);
     }
 
     .list {
       margin: 0;
       padding-left: 16px;
       display: grid;
-      gap: 5px;
+      gap: 6px;
     }
 
     .list li {
-      line-height: 1.35;
+      line-height: 1.4;
       word-break: break-word;
-      font-size: 12px;
+      font-size: 11px;
+      color: var(--text);
     }
 
     .empty {
-      padding: 16px;
-      color: #b5c4cb;
+      padding: 24px 16px;
+      color: var(--muted);
       text-align: center;
       font-size: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 2px;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      border-radius: 3px;
-      border: 1px solid #4c6772;
-      background: #132028;
-      color: #ced9de;
+      border-radius: 2px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
       font-size: 10px;
-      padding: 1px 6px 2px;
+      padding: 2px 6px;
       text-transform: uppercase;
-      letter-spacing: 0.36px;
-      line-height: 1.5;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
     }
 
     .badge.compact {
-      border-color: #8f6511;
-      background: #2d240a;
-      color: #ffd884;
+      border-color: var(--warning);
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
     }
 
     .badge.pre {
-      border-color: #4b6f7e;
-      background: #192931;
-      color: #c4d8df;
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
     .recovery-toolbar-grid {
@@ -675,12 +716,14 @@
       flex: 1 1 350px;
     }
 
-    .recovery-table table { min-width: 880px; }
+    .recovery-table table {
+      min-width: 880px;
+    }
 
     .event-text {
       max-width: 520px;
-      line-height: 1.25;
-      color: var(--ink-soft);
+      line-height: 1.4;
+      color: var(--text);
     }
 
     .event-text .one-line {
@@ -688,15 +731,17 @@
     }
 
     .danger-note {
-      color: #ffd0d0;
-      background: #2a1114;
-      border: 1px solid #7f2d33;
-      border-radius: 4px;
-      padding: 7px 8px;
+      color: var(--danger);
+      background: var(--danger-soft);
+      border: 1px dashed rgba(239, 68, 68, 0.4);
+      border-radius: 2px;
+      padding: 8px 10px;
       font-size: 11px;
     }
 
-    .hidden { display: none !important; }
+    .hidden {
+      display: none !important;
+    }
 
     .subtable-wrap {
       overflow: auto;
@@ -707,11 +752,18 @@
       min-width: 920px;
     }
 
+    .restore-wrap {
+      max-height: 320px;
+    }
+
+    .restore-wrap table {
+      min-width: 1200px;
+    }
+
     .tiny {
       font-size: 10px;
       color: var(--muted);
-      letter-spacing: 0.4px;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      letter-spacing: 0.5px;
     }
 
     .name-cell {
@@ -721,7 +773,7 @@
     }
 
     .name-main {
-      color: var(--ink-soft);
+      color: var(--text);
       font-weight: 600;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -748,13 +800,12 @@
     }
 
     .manager-hero {
-      border: 1px solid #314b56;
-      background: linear-gradient(180deg, rgba(8, 19, 25, 0.98) 0%, rgba(8, 14, 18, 0.95) 100%);
-      border-radius: 4px;
-      padding: 10px;
+      border: 1px dashed var(--border);
+      background: transparent;
+      border-radius: 2px;
+      padding: 12px;
       display: grid;
-      gap: 8px;
-      box-shadow: inset 0 -2px 0 rgba(111, 157, 172, 0.42);
+      gap: 12px;
     }
 
     .manager-hero-head {
@@ -766,10 +817,10 @@
     }
 
     .manager-hero-title {
-      font-size: 13px;
-      color: #c7d3d8;
+      font-size: 12px;
+      color: var(--text);
       font-weight: 600;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
     }
 
@@ -781,44 +832,41 @@
     }
 
     .manager-kpi {
-      border: 1px solid #415f6b;
-      background: #0f1d25;
-      border-radius: 3px;
-      padding: 2px 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 2px;
+      padding: 4px 8px;
       font-size: 10px;
-      color: #d0dce2;
-      letter-spacing: 0.32px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
       white-space: nowrap;
       text-transform: uppercase;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
     }
 
     .manager-kpi:nth-child(1) {
-      border-color: #7b5b18;
-      background: #1f1707;
-      color: #ffe9b8;
+      border-color: var(--warning);
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
     }
 
     .manager-kpi:nth-child(2) {
-      border-color: #4b6672;
-      background: #0f1d25;
-      color: #d0e0e6;
+      border-color: var(--border);
+      background: var(--panel-2);
+      color: var(--text);
     }
 
     .manager-kpi:nth-child(3) {
-      border-color: #7e2f35;
-      background: #2a1014;
-      color: #ffd7dd;
+      border-color: var(--danger);
+      background: var(--danger-soft);
+      color: var(--danger);
     }
 
     .manager-session-id {
-      font-size: 18px;
-      line-height: 1.14;
-      color: #f6fcff;
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--text);
       word-break: break-all;
-      letter-spacing: 0.3px;
-      font-variant-ligatures: none;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      letter-spacing: 0.5px;
     }
 
     .manager-project-row {
@@ -827,12 +875,13 @@
     }
 
     .manager-project-path {
-      font-size: 12px;
-      color: #c8d5db;
-      line-height: 1.35;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
       word-break: break-word;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -842,9 +891,9 @@
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
-      border: 1px solid #2c434d;
-      background: #0d171d;
-      border-radius: 4px;
+      border: 1px dashed var(--border);
+      background: transparent;
+      border-radius: 2px;
       padding: 6px;
       position: sticky;
       top: 0;
@@ -852,29 +901,28 @@
     }
 
     .manager-tab {
-      border: 1px solid #2c434d;
-      background: #121f26;
-      color: #bdd0d7;
-      border-radius: 3px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 2px;
       padding: 6px 10px;
       font-size: 10px;
       cursor: pointer;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.5px;
       white-space: nowrap;
       text-transform: uppercase;
       font-weight: 600;
     }
 
     .manager-tab:hover {
-      border-color: #5d7782;
-      color: #e2ebef;
+      border-color: var(--text);
+      color: var(--text);
     }
 
     .manager-tab.active {
-      background: #1a2b35;
-      border-color: #7ea5b2;
-      color: #ecf4f7;
-      box-shadow: inset 0 -2px 0 #7ea5b2;
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--bg);
     }
 
     .manager-pane {
@@ -884,39 +932,40 @@
       min-height: 0;
     }
 
-    .manager-pane.active { display: grid; }
+    .manager-pane.active {
+      display: grid;
+    }
 
     .manager-card {
-      background: #0d161b;
-      border: 1px solid #314b56;
-      border-radius: 4px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2px;
       overflow: hidden;
     }
 
     .manager-card-title {
-      font-size: 11px;
-      color: #b4c9d2;
+      font-size: 10px;
+      color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.65px;
+      letter-spacing: 0.5px;
       padding: 8px 10px;
-      border-bottom: 1px solid #314b56;
-      background: #132028;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-2);
     }
 
     .manager-card-body {
-      padding: 9px 10px;
-      font-size: 13px;
-      line-height: 1.42;
+      padding: 10px 12px;
+      font-size: 11px;
+      line-height: 1.4;
       word-break: break-word;
       white-space: pre-wrap;
-      max-height: 220px;
+      max-height: 240px;
       overflow: auto;
+      color: var(--text);
     }
 
     .manager-card-body.summary {
       max-height: 160px;
-      font-size: 13px;
     }
 
     .manager-card-body.prompt {
@@ -928,23 +977,22 @@
       padding: 0;
       list-style: none;
       display: grid;
-      gap: 7px;
+      gap: 8px;
       white-space: normal;
     }
 
     .manager-msg-item {
-      border: 1px solid #314b56;
-      border-radius: 4px;
-      padding: 8px;
-      background: #101a20;
+      border: 1px dashed var(--border);
+      border-radius: 2px;
+      padding: 10px;
+      background: transparent;
       display: grid;
-      gap: 4px;
+      gap: 6px;
       white-space: normal;
     }
 
     .manager-msg-item .muted {
-      font-size: 11px;
-      font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+      font-size: 10px;
     }
 
     .manager-meta-pane {
@@ -975,8 +1023,23 @@
         min-height: 60vh;
       }
 
-      table { min-width: 980px; }
-      .recovery-toolbar-grid { grid-template-columns: 1fr; }
+      table {
+        min-width: 980px;
+      }
+
+      .recovery-toolbar-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .manager-primary-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .manager-primary-controls .controls-right {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
     }
 
     @media (max-width: 860px) {
@@ -1014,16 +1077,24 @@
         font-size: 16px;
       }
 
-      table { min-width: 840px; }
+      table {
+        min-width: 840px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="page">
     <div class="topbar">
+      <div class="branding">
+        <div class="branding-icon"></div>
+        <span data-i18n="app.title">SessionDeck</span>
+      </div>
       <div class="tabbar">
         <button class="tab-btn active" data-view="manager" data-i18n="tab.manager">Session Manager</button>
-        <button class="tab-btn" data-view="recovery" data-i18n="tab.recovery">Recovery (Read-only)</button>
+        <button class="tab-btn" data-view="recovery" data-i18n="tab.recovery">Session Timeline</button>
+        <button class="tab-btn" data-view="restore" data-i18n="tab.restore">Recovery</button>
       </div>
       <div class="topbar-right">
         <div class="live-badge"><span class="live-dot"></span><span data-i18n="common.live">LIVE</span></div>
@@ -1037,27 +1108,32 @@
           <div class="title" data-i18n="manager.title">SessionDeck</div>
           <div class="sub" id="rootPath">Loading...</div>
         </div>
-        <div class="controls">
+        <div class="controls manager-primary-controls">
           <div class="controls-left">
-            <input id="searchInput" class="input" data-i18n-placeholder="manager.searchPlaceholder" placeholder="Filter by summary / first prompt / last prompt / project / session ID" />
+            <input id="searchInput" class="input" data-i18n-placeholder="manager.searchPlaceholder"
+              placeholder="Filter by summary / first prompt / last prompt / project / session ID" />
           </div>
           <div class="controls-right">
-            <label class="toggle" data-i18n-title="manager.hideEmptyTitle" title="Hide sessions with empty first/last/summary">
+            <label class="toggle" data-i18n-title="manager.hideEmptyTitle"
+              title="Hide sessions with empty first/last/summary">
               <input id="hideEmptyToggle" type="checkbox" checked />
               <span data-i18n="manager.hideEmpty">Hide empty sessions</span>
             </label>
             <button id="refreshBtn" class="btn" data-i18n="btn.refresh">Refresh</button>
             <button id="clearBtn" class="btn" data-i18n="btn.clearFilter">Clear filter</button>
             <button id="selectVisibleBtn" class="btn" data-i18n="btn.selectVisible">Select visible</button>
-            <button id="batchExportBtn" class="btn" data-i18n="btn.batchExport">Batch export</button>
+            <button id="batchExportBtn" class="btn" data-i18n="btn.batchExport">Export</button>
             <button id="rebuildIndexBtn" class="btn" data-i18n="btn.rebuildIndex">Rebuild index</button>
-            <button id="openRecoveryBtn" class="btn btn-accent" disabled data-i18n="btn.openRecovery">Open in Recovery</button>
-            <button id="deleteBtn" class="btn btn-danger" disabled data-i18n="btn.deleteSelected">Delete selected</button>
+            <button id="openRecoveryBtn" class="btn btn-timeline" disabled data-i18n="btn.openRecovery">Open Session
+              Timeline</button>
+            <button id="deleteBtn" class="btn btn-danger" disabled data-i18n="btn.deleteSelected">Delete
+              selected</button>
           </div>
         </div>
         <div class="controls">
           <div class="controls-left">
-            <input id="globalSearchInput" class="input" data-i18n-placeholder="manager.globalSearchPlaceholder" placeholder="Search full text across all sessions" />
+            <input id="globalSearchInput" class="input" data-i18n-placeholder="manager.globalSearchPlaceholder"
+              placeholder="Search full text across all sessions" />
           </div>
           <div class="controls-right">
             <label class="toggle">
@@ -1066,7 +1142,7 @@
             </label>
             <button id="globalSearchBtn" class="btn" data-i18n="btn.globalSearch">Global search</button>
             <button id="globalSearchClearBtn" class="btn" data-i18n="btn.clearResults">Clear results</button>
-            <span class="muted" id="globalSearchInfo">Not searched</span>
+            <span id="globalSearchInfo">Search idle</span>
           </div>
         </div>
       </section>
@@ -1079,7 +1155,8 @@
               <span class="pill" id="selectedPill">0 selected</span>
             </div>
             <div class="controls-right">
-              <span class="muted" data-i18n="manager.listHint">List prioritizes Project + Summary, then first/last prompts</span>
+              <span class="muted" data-i18n="manager.listHint">List prioritizes Project + Summary, then first/last
+                prompts</span>
               <button id="managerFocusBtn" class="btn" data-i18n="btn.focusTable">Focus table</button>
             </div>
           </div>
@@ -1087,17 +1164,17 @@
           <div class="table-wrap">
             <table>
               <thead>
-              <tr>
-                <th style="width:42px" data-i18n="table.select">Sel</th>
-                <th style="width:46px" data-i18n="table.no">No</th>
-                <th style="width:138px" data-i18n="table.modified">Modified</th>
-                <th style="width:55px" data-i18n="table.msgs">Msgs</th>
-                <th style="width:180px" data-i18n="table.name">Name</th>
-                <th style="width:220px" data-i18n="table.project">Project</th>
-                <th style="width:230px" data-i18n="table.summary">Summary</th>
-                <th style="width:230px" data-i18n="table.firstPrompt">First Prompt</th>
-                <th style="width:230px" data-i18n="table.lastPrompt">Last Prompt</th>
-              </tr>
+                <tr>
+                  <th style="width:42px" data-i18n="table.select">Sel</th>
+                  <th style="width:46px" data-i18n="table.no">No</th>
+                  <th style="width:138px" data-i18n="table.modified">Modified</th>
+                  <th style="width:55px" data-i18n="table.msgs">Msgs</th>
+                  <th style="width:180px" data-i18n="table.name">Name</th>
+                  <th style="width:220px" data-i18n="table.project">Project</th>
+                  <th style="width:230px" data-i18n="table.summary">Summary</th>
+                  <th style="width:230px" data-i18n="table.firstPrompt">First Prompt</th>
+                  <th style="width:230px" data-i18n="table.lastPrompt">Last Prompt</th>
+                </tr>
               </thead>
               <tbody id="sessionBody"></tbody>
             </table>
@@ -1110,7 +1187,8 @@
             <div class="muted" data-i18n="manager.previewHint">Click any row on the left</div>
           </div>
           <div id="preview" class="preview">
-            <div class="empty" data-i18n="manager.previewEmpty">Select a session on the left to preview details and recent user messages.</div>
+            <div class="empty" data-i18n="manager.previewEmpty">Select a session on the left to preview details and
+              recent user messages.</div>
           </div>
         </div>
       </section>
@@ -1135,29 +1213,34 @@
           </table>
         </div>
       </section>
+
     </section>
 
     <section id="view-recovery" class="view">
       <section class="toolbar">
         <div>
-          <div class="title" data-i18n="recovery.title">Session Recovery (Read-only)</div>
-          <div class="sub" data-i18n="recovery.subtitle">Read main + subagent logs. Defaults to pre-compact context. Source files stay untouched.</div>
+          <div class="title" data-i18n="recovery.title">Session Timeline</div>
+          <div class="sub" data-i18n="recovery.subtitle">Read main + subagent logs. Defaults to pre-compact context.
+            Source files stay untouched.</div>
         </div>
 
         <div class="recovery-toolbar-grid">
           <div>
-            <input id="recoverySessionId" class="input mono" data-i18n-placeholder="recovery.sessionIdPlaceholder" placeholder="Enter Session ID, e.g. 8450d97a-a209-46c0-9834-689f02871525" />
+            <input id="recoverySessionId" class="input mono" data-i18n-placeholder="recovery.sessionIdPlaceholder"
+              placeholder="Enter Session ID, e.g. 8450d97a-a209-46c0-9834-689f02871525" />
           </div>
           <div class="controls-right">
             <button id="recoveryLoadBtn" class="btn btn-accent" data-i18n="btn.loadSession">Load Session</button>
             <button id="recoveryLocateCompactBtn" class="btn" data-i18n="btn.locateCompact">Locate compact</button>
-            <button id="recoveryExportBtn" class="btn" data-i18n="btn.exportMarkdown">Export current view Markdown</button>
+            <button id="recoveryExportBtn" class="btn" data-i18n="btn.exportMarkdown">Export current view
+              Markdown</button>
           </div>
         </div>
 
         <div class="recovery-filters">
           <div class="controls-left">
-            <input id="recoverySearchInput" class="input" data-i18n-placeholder="recovery.searchPlaceholder" placeholder="Search: keyword / phrase / filename" />
+            <input id="recoverySearchInput" class="input" data-i18n-placeholder="recovery.searchPlaceholder"
+              placeholder="Search: keyword / phrase / filename" />
           </div>
           <select id="recoveryRoleSelect" class="select" style="width:140px">
             <option value="all" data-i18n="recovery.roleAll">All roles</option>
@@ -1214,8 +1297,54 @@
             <div class="muted" data-i18n="recovery.eventDetailHint">Click any row on the left</div>
           </div>
           <div id="recoveryPreview" class="preview">
-            <div class="empty" data-i18n="recovery.previewEmpty">Load a session, then click an event row to view full text.</div>
+            <div class="empty" data-i18n="recovery.previewEmpty">Load a session, then click an event row to view full
+              text.</div>
           </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="view-restore" class="view">
+      <section class="toolbar">
+        <div>
+          <div class="title" data-i18n="restore.title">Recovery</div>
+          <div class="sub" data-i18n="restore.subtitle">Restore deleted sessions from Trash. Source files are only moved
+            back to original paths.</div>
+        </div>
+      </section>
+      <section class="panel" id="restorePanel">
+        <div class="panel-head">
+          <div data-i18n="restore.title">Recovery</div>
+          <div class="muted" id="restoreInfo" data-i18n="restore.infoInit">Delete first to see recoverable records</div>
+        </div>
+        <div class="controls" style="padding: 8px 10px; border-bottom: 1px solid var(--border);">
+          <div class="controls-left">
+            <input id="restoreSearchInput" class="input" data-i18n-placeholder="restore.searchPlaceholder"
+              placeholder="Filter by session / path / status" />
+          </div>
+          <div class="controls-right">
+            <label class="toggle" data-i18n-title="restore.showRestoredTitle" title="Show restored records too">
+              <input id="restoreShowRestoredToggle" type="checkbox" />
+              <span data-i18n="restore.showRestored">Show restored</span>
+            </label>
+            <button id="restoreRefreshBtn" class="btn" data-i18n="btn.refresh">Refresh</button>
+            <button id="restoreCloseBtn" class="btn" data-i18n="btn.closeRecovery">Close</button>
+          </div>
+        </div>
+        <div class="subtable-wrap restore-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:160px" data-i18n="table.deletedAt">Deleted At</th>
+                <th style="width:120px" data-i18n="table.sid">SID</th>
+                <th style="width:140px" data-i18n="table.status">Status</th>
+                <th style="width:320px" data-i18n="table.projectPath">Path</th>
+                <th style="width:180px" data-i18n="table.recoverable">Recoverable</th>
+                <th style="width:140px" data-i18n="table.action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="restoreBody"></tbody>
+          </table>
         </div>
       </section>
     </section>
@@ -1228,7 +1357,8 @@
       en: {
         'app.title': 'SessionDeck',
         'tab.manager': 'Session Manager',
-        'tab.recovery': 'Recovery (Read-only)',
+        'tab.recovery': 'Session Timeline',
+        'tab.restore': 'Recovery',
         'manager.title': 'SessionDeck',
         'manager.searchPlaceholder': 'Filter by summary / first prompt / last prompt / project / session ID',
         'manager.hideEmptyTitle': 'Hide sessions with empty first/last/summary',
@@ -1240,9 +1370,9 @@
         'manager.globalSearchPlaceholder': 'Search full text across all sessions',
         'manager.globalResultsTitle': 'Global Search Results',
         'manager.globalResultsHint': 'Click a result row to jump to that session',
-        'manager.notSearched': 'Not searched',
-        'manager.searching': 'Searching...',
-        'manager.resultsCount': '{count} results',
+        'manager.notSearched': 'Status: idle',
+        'manager.searching': 'Status: searching...',
+        'manager.resultsCount': 'Status: {count} hits',
         'manager.count': '{visible} / {total} sessions',
         'manager.selected': '{count} selected',
         'manager.noMatch': 'No matching sessions',
@@ -1272,10 +1402,27 @@
         'manager.rootPath': 'Session Root: {root}',
         'manager.rebuildDone': 'Index rebuild completed\nProjects: {projects}\nSessions: {sessions}',
         'manager.enterSearchKeyword': 'Enter a search keyword',
-        'manager.deleteConfirm': 'Delete {count} session(s)?\n\nThis will:\n1) Move session files to system Trash\n2) Remove entries from sessions-index.json\n\nYou can restore files from Trash.',
+        'manager.deleteConfirm': 'Delete {count} session(s)?\n\nThis will:\n1) Move session files to system Trash\n2) Remove entries from sessions-index.json\n\nOpen Recovery to restore from Trash.',
         'manager.deleteDone': 'Delete done: {deleted}\nFailed: {failed}',
         'manager.deleteFailed': 'Delete failed: {message}',
-        'recovery.title': 'Session Recovery (Read-only)',
+        'restore.title': 'Recovery',
+        'restore.subtitle': 'Restore deleted sessions from Trash. Source files are only moved back to original paths.',
+        'restore.infoInit': 'Delete first to see recoverable records',
+        'restore.searchPlaceholder': 'Filter by session / path / status',
+        'restore.showRestoredTitle': 'Show restored records too',
+        'restore.showRestored': 'Show restored',
+        'restore.noRows': 'No records. Delete in Manager first.',
+        'restore.noMatches': 'No matching recovery records',
+        'restore.loading': 'Loading recovery records...',
+        'restore.infoLine': '{count} records | recoverable {recoverable} | restored {restored}',
+        'restore.statusDeleted': 'deleted',
+        'restore.statusMissing': 'index-only',
+        'restore.statusRestored': 'restored',
+        'restore.statusFailed': 'failed',
+        'restore.confirmRecover': 'Recover this session file from Trash?\n\nSID: {sid}\nPath: {path}',
+        'restore.recoverDone': 'Recovered: {sid}',
+        'restore.recoverFailed': 'Recovery failed: {message}',
+        'recovery.title': 'Session Timeline',
         'recovery.subtitle': 'Read main + subagent logs. Defaults to pre-compact context. Source files stay untouched.',
         'recovery.sessionIdPlaceholder': 'Enter Session ID, e.g. 8450d97a-a209-46c0-9834-689f02871525',
         'recovery.searchPlaceholder': 'Search: keyword / phrase / filename',
@@ -1302,11 +1449,14 @@
         'recovery.noCompactFound': 'No compact event detected.',
         'recovery.noExportRecords': 'No records available to export.',
         'btn.refresh': 'Refresh',
+        'btn.refreshing': 'Refreshing...',
         'btn.clearFilter': 'Clear filter',
         'btn.selectVisible': 'Select visible',
-        'btn.batchExport': 'Batch export',
+        'btn.batchExport': 'Export',
         'btn.rebuildIndex': 'Rebuild index',
-        'btn.openRecovery': 'Open in Recovery',
+        'btn.openRecovery': 'Open Session Timeline',
+        'btn.recover': 'Recover',
+        'btn.closeRecovery': 'Back to Manager',
         'btn.deleteSelected': 'Delete selected',
         'btn.globalSearch': 'Global search',
         'btn.clearResults': 'Clear results',
@@ -1338,6 +1488,12 @@
         'table.source': 'Source',
         'table.tag': 'Tag',
         'table.text': 'Text',
+        'table.deletedAt': 'Deleted At',
+        'table.sid': 'SID',
+        'table.status': 'Status',
+        'table.projectPath': 'Path',
+        'table.recoverable': 'Recoverable',
+        'table.action': 'Action',
         'recovery.labelSessionId': 'Session ID',
         'recovery.labelEventNo': 'Event #',
         'recovery.labelTimestamp': 'Timestamp',
@@ -1347,101 +1503,122 @@
       zh: {
         'app.title': 'SessionDeck',
         'tab.manager': '会话管理',
-        'tab.recovery': '恢复视图（只读）',
+        'tab.recovery': '会话时间线',
+        'tab.restore': '恢复',
         'manager.title': 'SessionDeck',
-        'manager.searchPlaceholder': '关键词过滤：summary / first prompt / last prompt / project / sessionId',
-        'manager.hideEmptyTitle': '隐藏 first/last/summary 都为空的会话',
+        'manager.searchPlaceholder': '关键词过滤：摘要 / 首条提示词 / 末条提示词 / 项目 / 会话ID',
+        'manager.hideEmptyTitle': '隐藏首条/末条/摘要都为空的会话',
         'manager.hideEmpty': '隐藏空会话',
-        'manager.listHint': '列表优先显示 Project + Summary，再看 first/last prompt',
+        'manager.listHint': '列表优先显示项目与摘要，再看首条/末条提示词',
         'manager.previewTitle': '会话详情预览',
         'manager.previewHint': '点击左侧任意会话行',
         'manager.previewEmpty': '先在左侧点一个会话，右侧会显示完整信息和最近用户消息。',
-        'manager.globalSearchPlaceholder': '跨所有 session 全文搜索（输入关键词后点搜索）',
+        'manager.globalSearchPlaceholder': '跨所有会话全文搜索（输入关键词后点搜索）',
         'manager.globalResultsTitle': '全局全文搜索结果',
         'manager.globalResultsHint': '点击结果行可直接定位到该会话详情',
-        'manager.notSearched': '未搜索',
-        'manager.searching': '搜索中...',
-        'manager.resultsCount': '{count} 条结果',
-        'manager.count': '{visible} / {total} sessions',
-        'manager.selected': '{count} selected',
+        'manager.notSearched': '状态：空闲',
+        'manager.searching': '状态：搜索中...',
+        'manager.resultsCount': '状态：{count} 条命中',
+        'manager.count': '{visible} / {total} 会话',
+        'manager.selected': '已选 {count}',
         'manager.noMatch': '没有匹配会话',
         'manager.loadingDetail': '正在加载会话详情...',
         'manager.noUserMessages': '没有提取到用户消息。',
-        'manager.noPromptHint': '该会话暂无可读 prompt 文本，通常是工具/系统型会话或非常短的中断会话。',
+        'manager.noPromptHint': '该会话暂无可读提示词文本，通常是工具/系统型会话或非常短的中断会话。',
         'manager.detailTitle': '会话详情',
         'manager.kpiMessages': '消息数: {count}',
         'manager.kpiModified': '更新: {time}',
         'manager.kpiCreated': '创建: {time}',
         'manager.projectPath': '项目路径',
         'manager.tabSummary': '概览',
-        'manager.tabPrompts': 'Prompts',
+        'manager.tabPrompts': '提示词',
         'manager.tabMessages': '用户消息 ({count})',
         'manager.tabMeta': '命名/标签',
-        'manager.cardSummary': 'Summary',
+        'manager.cardSummary': '摘要',
         'manager.cardName': '名称',
         'manager.cardTags': '标签',
-        'manager.cardFirstPrompt': 'First Prompt',
-        'manager.cardLastPrompt': 'Last Prompt',
+        'manager.cardFirstPrompt': '首条提示词',
+        'manager.cardLastPrompt': '末条提示词',
         'manager.cardRecentMessages': '最近用户消息 ({count})',
-        'manager.cardMetaEditor': '命名与标签（sidecar，不改原 session）',
+        'manager.cardMetaEditor': '命名与标签（旁挂元数据，不改原会话）',
         'manager.metaNamePlaceholder': '自定义名称（可空）',
         'manager.metaTagsPlaceholder': '标签，逗号分隔（可空）',
         'manager.metaSaving': '保存中...',
         'manager.metaSaved': '已保存',
-        'manager.rootPath': 'Session Root: {root}',
+        'manager.rootPath': '会话根目录：{root}',
         'manager.rebuildDone': '索引重建完成\n项目目录: {projects}\n会话数: {sessions}',
         'manager.enterSearchKeyword': '请输入搜索关键词',
-        'manager.deleteConfirm': '确认删除 {count} 条会话？\n\n操作内容：\n1) 会话文件移动到系统废纸篓 (trash)\n2) 从 sessions-index.json 移除索引\n\n你可在废纸篓恢复文件。',
-        'manager.deleteDone': '删除完成: {deleted} 条\n失败: {failed} 条',
-        'manager.deleteFailed': '删除失败: {message}',
-        'recovery.title': '会话恢复（只读）',
-        'recovery.subtitle': '读取主会话 + subagents 日志，默认先看压缩前上下文，不改任何源文件。',
-        'recovery.sessionIdPlaceholder': '输入 Session ID，例如 8450d97a-a209-46c0-9834-689f02871525',
+        'manager.deleteConfirm': '确认删除 {count} 条会话？\n\n操作内容：\n1) 会话文件移动到系统废纸篓 (trash)\n2) 从 sessions-index.json 移除索引\n\n可在“恢复”页签中恢复。',
+        'manager.deleteDone': '删除完成：{deleted} 条\n失败：{failed} 条',
+        'manager.deleteFailed': '删除失败：{message}',
+        'restore.title': '恢复',
+        'restore.subtitle': '从废纸篓恢复已删除会话。只会把文件移回原路径，不会改写源内容。',
+        'restore.infoInit': '先删除会话，才会出现可恢复记录',
+        'restore.searchPlaceholder': '按会话 / 路径 / 状态过滤',
+        'restore.showRestoredTitle': '是否展示已恢复记录',
+        'restore.showRestored': '显示已恢复',
+        'restore.noRows': '暂无记录。先在会话管理中删除后可恢复。',
+        'restore.noMatches': '没有匹配的恢复记录',
+        'restore.loading': '正在加载恢复记录...',
+        'restore.infoLine': '{count} 条记录 | 可恢复 {recoverable} 条 | 已恢复 {restored} 条',
+        'restore.statusDeleted': '已删除',
+        'restore.statusMissing': '仅索引',
+        'restore.statusRestored': '已恢复',
+        'restore.statusFailed': '失败',
+        'restore.confirmRecover': '确认从废纸篓恢复该会话文件？\n\n会话ID: {sid}\n路径: {path}',
+        'restore.recoverDone': '恢复成功：{sid}',
+        'restore.recoverFailed': '恢复失败：{message}',
+        'recovery.title': '会话时间线',
+        'recovery.subtitle': '读取主会话 + 子代理日志，默认先看压缩前上下文，不改任何源文件。',
+        'recovery.sessionIdPlaceholder': '输入会话ID，例如 8450d97a-a209-46c0-9834-689f02871525',
         'recovery.searchPlaceholder': '搜索：关键词 / 句子片段 / 文件名',
         'recovery.roleAll': '全部角色',
-        'recovery.roleUser': '仅 USER',
-        'recovery.roleAssistant': '仅 ASSISTANT',
-        'recovery.roleSystem': '仅 SYSTEM',
+        'recovery.roleUser': '仅用户',
+        'recovery.roleAssistant': '仅助手',
+        'recovery.roleSystem': '仅系统',
         'recovery.preOnly': '只看压缩前',
-        'recovery.statsInit': '先输入 Session ID 并加载',
+        'recovery.statsInit': '先输入会话ID并加载',
         'recovery.statsCompactMissing': '未检测到',
-        'recovery.statsLine': 'total {total} | first compact: {compactAt} | subagents: {subagents} | compact files: {compactFiles}',
-        'recovery.countVisible': '{count} visible',
-        'recovery.countCompact': '{count} compact',
-        'recovery.countPre': '{count} pre-compact',
+        'recovery.statsLine': '总事件 {total} | 首次压缩：{compactAt} | 子代理文件：{subagents} | 压缩文件：{compactFiles}',
+        'recovery.countVisible': '可见 {count} 条',
+        'recovery.countCompact': '压缩点 {count} 条',
+        'recovery.countPre': '压缩前 {count} 条',
         'recovery.eventDetailTitle': '事件详情',
         'recovery.eventDetailHint': '点击左侧任意行',
-        'recovery.previewEmpty': '加载 session 后，点击某条记录查看全文。',
-        'recovery.tableNoDataset': '输入 Session ID 后点击“加载 Session”。',
+        'recovery.previewEmpty': '加载会话后，点击某条记录查看全文。',
+        'recovery.tableNoDataset': '输入会话 ID 后点击“加载会话”。',
         'recovery.tableNoMatches': '没有匹配记录（可尝试取消“只看压缩前”）。',
         'recovery.fullContent': '完整内容',
-        'recovery.loadFailed': '加载失败: HTTP {status}',
-        'recovery.invalidSessionId': 'Session ID 格式无效，请输入完整 UUID。',
+        'recovery.loadFailed': '加载失败：HTTP {status}',
+        'recovery.invalidSessionId': '会话ID格式无效，请输入完整 UUID。',
         'recovery.readingLogs': '正在读取本地日志...',
-        'recovery.noCompactFound': '未检测到 compact 事件。',
+        'recovery.noCompactFound': '未检测到压缩事件。',
         'recovery.noExportRecords': '当前没有可导出的记录。',
         'btn.refresh': '刷新',
+        'btn.refreshing': '刷新中...',
         'btn.clearFilter': '清空过滤',
         'btn.selectVisible': '选择当前结果',
-        'btn.batchExport': '批量导出',
+        'btn.batchExport': '导出',
         'btn.rebuildIndex': '重建索引',
-        'btn.openRecovery': '在 Recovery 打开当前会话',
+        'btn.openRecovery': '打开会话时间线',
+        'btn.recover': '恢复',
+        'btn.closeRecovery': '返回会话管理',
         'btn.deleteSelected': '删除已选',
         'btn.globalSearch': '全文搜索',
         'btn.clearResults': '清空结果',
-        'btn.loadSession': '加载 Session',
+        'btn.loadSession': '加载会话',
         'btn.locateCompact': '定位压缩点',
-        'btn.exportMarkdown': '导出当前视图 Markdown',
+        'btn.exportMarkdown': '导出当前视图（Markdown）',
         'btn.clearFilters': '清空过滤',
         'btn.focusTable': '专注表格',
         'btn.expandDetails': '展开详情',
         'btn.saveNameTags': '保存命名/标签',
-        'common.includeSubagents': '含 subagents',
+        'common.includeSubagents': '包含子代理',
         'common.live': '实时',
-        'common.httpError': '请求失败: HTTP {status}',
-        'common.unknown': '(unknown)',
-        'common.empty': '(empty)',
-        'common.none': '(none)',
+        'common.httpError': '请求失败：HTTP {status}',
+        'common.unknown': '(未知)',
+        'common.empty': '(空)',
+        'common.none': '(无)',
         'table.select': '选',
         'table.no': '序号',
         'table.modified': '更新时间',
@@ -1449,15 +1626,21 @@
         'table.name': '名称',
         'table.project': '项目',
         'table.summary': '摘要',
-        'table.firstPrompt': '首条 Prompt',
-        'table.lastPrompt': '末条 Prompt',
+        'table.firstPrompt': '首条提示词',
+        'table.lastPrompt': '末条提示词',
         'table.hash': '#',
         'table.time': '时间',
         'table.role': '角色',
         'table.source': '来源',
         'table.tag': '标签',
         'table.text': '内容',
-        'recovery.labelSessionId': 'Session ID',
+        'table.deletedAt': '删除时间',
+        'table.sid': '会话ID',
+        'table.status': '状态',
+        'table.projectPath': '路径',
+        'table.recoverable': '可恢复文件',
+        'table.action': '操作',
+        'recovery.labelSessionId': '会话 ID',
         'recovery.labelEventNo': '事件 #',
         'recovery.labelTimestamp': '时间',
         'recovery.labelLine': '行号',
@@ -1488,6 +1671,13 @@
         globalSearchError: '',
         previewTab: 'summary',
       },
+      restore: {
+        query: '',
+        showRestored: false,
+        entries: [],
+        filtered: [],
+        loading: false,
+      },
       recovery: {
         sessionId: '',
         query: '',
@@ -1507,6 +1697,7 @@
       views: {
         manager: document.getElementById('view-manager'),
         recovery: document.getElementById('view-recovery'),
+        restore: document.getElementById('view-restore'),
       },
       localeToggleBtn: document.getElementById('localeToggleBtn'),
       managerLayout: document.getElementById('managerLayout'),
@@ -1534,6 +1725,13 @@
       globalSearchInfo: document.getElementById('globalSearchInfo'),
       globalSearchPanel: document.getElementById('globalSearchPanel'),
       globalSearchBody: document.getElementById('globalSearchBody'),
+      restorePanel: document.getElementById('restorePanel'),
+      restoreInfo: document.getElementById('restoreInfo'),
+      restoreSearchInput: document.getElementById('restoreSearchInput'),
+      restoreShowRestoredToggle: document.getElementById('restoreShowRestoredToggle'),
+      restoreRefreshBtn: document.getElementById('restoreRefreshBtn'),
+      restoreCloseBtn: document.getElementById('restoreCloseBtn'),
+      restoreBody: document.getElementById('restoreBody'),
 
       recoverySessionId: document.getElementById('recoverySessionId'),
       recoveryLoadBtn: document.getElementById('recoveryLoadBtn'),
@@ -1591,6 +1789,7 @@
       }
       renderRootPath();
       renderGlobalSearchInfo();
+      renderRestorePanel();
       syncFocusTableUI();
     }
 
@@ -1602,6 +1801,7 @@
       renderManagerTable();
       renderManagerPreview(state.manager.activeDetail);
       renderGlobalSearchResults();
+      renderRestorePanel();
       renderRecoveryTable();
       renderRecoveryPreview(findRecoveryEventById(state.recovery.activeId));
     }
@@ -1636,7 +1836,9 @@
       const queryView = new URLSearchParams(window.location.search).get('view');
       const hashView = String(window.location.hash || '').replace(/^#/, '');
       const candidate = String(queryView || hashView || '').trim().toLowerCase();
-      return candidate === 'recovery' ? 'recovery' : 'manager';
+      if (candidate === 'recovery') return 'recovery';
+      if (candidate === 'restore') return 'restore';
+      return 'manager';
     }
 
     function isDemoModeEnabled() {
@@ -1655,6 +1857,11 @@
       if (state.view === 'manager') {
         await activateManagerSessionByKey(first.key);
         renderManagerTable();
+        return;
+      }
+
+      if (state.view === 'restore') {
+        await loadRestoreEntries();
         return;
       }
 
@@ -2000,6 +2207,118 @@
       return data;
     }
 
+    async function fetchTrashRecoverable(limit = 300) {
+      const res = await fetch(`/api/trash-recoverable?limit=${encodeURIComponent(limit)}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
+      return data;
+    }
+
+    async function recoverByLogId(id, trashPath = '') {
+      const res = await fetch('/api/recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, trashPath }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
+      return data;
+    }
+
+    function restoreSearchable(item) {
+      return [
+        item.sessionId,
+        item.fullPath,
+        item.status,
+        item.deletedAt,
+      ].join(' ').toLowerCase();
+    }
+
+    function applyRestoreFilter() {
+      const r = state.restore;
+      const q = String(r.query || '').trim().toLowerCase();
+      r.filtered = r.entries.filter((item) => {
+        if (!r.showRestored && String(item.status) === 'restored') {
+          return false;
+        }
+        if (q && !restoreSearchable(item).includes(q)) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function restoreStatusText(status) {
+      const value = String(status || '').trim().toLowerCase();
+      if (value === 'restored') return t('restore.statusRestored');
+      if (value === 'missing_file') return t('restore.statusMissing');
+      if (value.includes('failed')) return t('restore.statusFailed');
+      return t('restore.statusDeleted');
+    }
+
+    function renderRestorePanel() {
+      const r = state.restore;
+      if (!els.restoreBody || !els.restoreInfo || !els.restorePanel) {
+        return;
+      }
+
+      const restoredCount = r.entries.filter((item) => String(item.status) === 'restored').length;
+      const recoverableCount = r.entries.filter((item) => item.canRecover).length;
+      els.restoreInfo.textContent = r.loading
+        ? t('restore.loading')
+        : t('restore.infoLine', {
+          count: r.entries.length,
+          recoverable: recoverableCount,
+          restored: restoredCount,
+        });
+
+      if (r.filtered.length === 0) {
+        const msg = r.entries.length === 0 ? t('restore.noRows') : t('restore.noMatches');
+        els.restoreBody.innerHTML = `<tr><td colspan="6" class="empty">${esc(msg)}</td></tr>`;
+        return;
+      }
+
+      els.restoreBody.innerHTML = r.filtered.map((item) => {
+        const sid = String(item.sessionId || '');
+        const sidShort = sid.slice(0, 8);
+        const isRestored = String(item.status) === 'restored';
+        const canRecover = Boolean(item.canRecover) && !isRestored;
+        const statusBadgeClass = isRestored ? 'pre' : (canRecover ? 'compact' : '');
+        const canText = item.canRecover
+          ? `<span class="mono">${esc(item.trashPath || '')}</span>`
+          : `<span class="muted">${esc(t('common.none'))}</span>`;
+
+        return `
+          <tr class="data-row" data-restore-id="${esc(item.id)}" data-trash-path="${esc(item.trashPath || '')}">
+            <td>${esc(fmtTime(item.deletedAt))}</td>
+            <td class="mono" title="${esc(sid)}">${esc(sidShort)}</td>
+            <td><span class="badge ${statusBadgeClass}">${esc(restoreStatusText(item.status))}</span></td>
+            <td title="${esc(item.fullPath || '')}"><span class="one-line">${esc(item.fullPath || '—')}</span></td>
+            <td title="${esc(item.trashPath || '')}">${canText}</td>
+            <td>
+              <button class="btn" data-role="recover" ${canRecover ? '' : 'disabled'}>${esc(t('btn.recover'))}</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadRestoreEntries() {
+      state.restore.loading = true;
+      renderRestorePanel();
+      try {
+        const data = await fetchTrashRecoverable(400);
+        state.restore.entries = Array.isArray(data.entries) ? data.entries : [];
+      } catch (error) {
+        state.restore.entries = [];
+        window.alert(error.message);
+      } finally {
+        state.restore.loading = false;
+        applyRestoreFilter();
+        renderRestorePanel();
+      }
+    }
+
     function selectedKeysInCurrentList() {
       const m = state.manager;
       const visible = new Set(m.filtered.map((s) => s.key));
@@ -2095,6 +2414,18 @@
         m.activeDetail = null;
       }
 
+      if (m.activeKey && validKeys.has(m.activeKey)) {
+        try {
+          const freshDetail = await fetchSessionDetail(m.activeKey);
+          if (freshDetail && !freshDetail.key) {
+            freshDetail.key = m.activeKey;
+          }
+          m.activeDetail = freshDetail;
+        } catch {
+          // Keep previous preview on detail fetch failure.
+        }
+      }
+
       renderManagerTable();
       renderManagerPreview(m.activeDetail);
     }
@@ -2123,6 +2454,8 @@
         m.activeKey = null;
         m.activeDetail = null;
         await reloadManagerAndRender();
+        await loadRestoreEntries();
+        switchView('restore');
       } catch (error) {
         window.alert(t('manager.deleteFailed', { message: error.message }));
       } finally {
@@ -2441,7 +2774,20 @@
       });
 
       els.refreshBtn.addEventListener('click', async () => {
-        await reloadManagerAndRender();
+        const originalText = els.refreshBtn.textContent;
+        els.refreshBtn.disabled = true;
+        els.refreshBtn.textContent = t('btn.refreshing');
+        try {
+          await reloadManagerAndRender();
+          if (state.view === 'restore') {
+            await loadRestoreEntries();
+          }
+        } catch (error) {
+          window.alert(error.message);
+        } finally {
+          els.refreshBtn.disabled = false;
+          els.refreshBtn.textContent = originalText || t('btn.refresh');
+        }
       });
 
       els.clearBtn.addEventListener('click', () => {
@@ -2560,6 +2906,70 @@
       });
     }
 
+    function bindRestoreEvents() {
+      const r = state.restore;
+      if (!els.restoreBody) return;
+
+      els.restoreSearchInput.addEventListener('input', (event) => {
+        r.query = event.target.value || '';
+        applyRestoreFilter();
+        renderRestorePanel();
+      });
+
+      els.restoreShowRestoredToggle.addEventListener('change', (event) => {
+        r.showRestored = Boolean(event.target.checked);
+        applyRestoreFilter();
+        renderRestorePanel();
+      });
+
+      els.restoreRefreshBtn.addEventListener('click', async () => {
+        const originalText = els.restoreRefreshBtn.textContent;
+        els.restoreRefreshBtn.disabled = true;
+        els.restoreRefreshBtn.textContent = t('btn.refreshing');
+        try {
+          await loadRestoreEntries();
+        } catch (error) {
+          window.alert(error.message);
+        } finally {
+          els.restoreRefreshBtn.disabled = false;
+          els.restoreRefreshBtn.textContent = originalText || t('btn.refresh');
+        }
+      });
+      els.restoreCloseBtn.addEventListener('click', () => {
+        switchView('manager');
+      });
+
+      els.restoreBody.addEventListener('click', async (event) => {
+        const btn = event.target.closest('button[data-role="recover"]');
+        if (!btn) return;
+        const row = event.target.closest('tr[data-restore-id]');
+        if (!row) return;
+
+        const id = row.getAttribute('data-restore-id');
+        const trashPath = row.getAttribute('data-trash-path') || '';
+        const record = r.entries.find((item) => String(item.id) === String(id));
+        if (!record) return;
+
+        const confirmed = window.confirm(t('restore.confirmRecover', {
+          sid: record.sessionId || '',
+          path: record.fullPath || '',
+        }));
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        try {
+          await recoverByLogId(id, trashPath);
+          window.alert(t('restore.recoverDone', { sid: record.sessionId || '' }));
+          await reloadManagerAndRender();
+          await loadRestoreEntries();
+        } catch (error) {
+          window.alert(t('restore.recoverFailed', { message: error.message }));
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
     function bindRecoveryEvents() {
       const r = state.recovery;
 
@@ -2627,10 +3037,13 @@
 
     function bindTabEvents() {
       for (const btn of els.tabs) {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const view = btn.dataset.view;
           if (!view) return;
           switchView(view);
+          if (view === 'restore') {
+            await loadRestoreEntries();
+          }
         });
       }
 
@@ -2644,22 +3057,29 @@
     async function init() {
       bindTabEvents();
       bindManagerEvents();
+      bindRestoreEvents();
       bindRecoveryEvents();
       applyI18n();
-      switchView(resolveInitialView());
+      const initialView = resolveInitialView();
+      switchView(initialView);
 
       els.hideEmptyToggle.checked = state.manager.hideEmpty;
+      els.restoreShowRestoredToggle.checked = state.restore.showRestored;
       els.recoveryPreOnlyToggle.checked = state.recovery.preOnly;
       els.recoveryIncludeSubagentsToggle.checked = state.recovery.includeSubagents;
       syncFocusTableUI();
 
       try {
         await reloadManagerAndRender();
+        if (initialView === 'restore') {
+          await loadRestoreEntries();
+        }
         await applyDemoStateIfNeeded();
       } catch (error) {
         els.sessionBody.innerHTML = `<tr><td colspan="9" class="empty">${esc(error.message)}</td></tr>`;
       }
 
+      renderRestorePanel();
       renderRecoveryTable();
       const activeRecoveryEvent = state.recovery.activeId != null
         ? findRecoveryEventById(state.recovery.activeId)
@@ -2670,4 +3090,5 @@
     init();
   </script>
 </body>
+
 </html>
