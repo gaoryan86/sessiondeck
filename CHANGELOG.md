@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] - 2026-03-03
+
+### Added
+
+- Three-view product structure with dedicated tabs: `Session Manager`, `Session Timeline`, and `Recovery`.
+- New screenshot set aligned to the three main product sections.
+
+### Changed
+
+- Major frontend updates in `index.html` for the new three-section workflow.
+- Backend updates in `server.mjs` to support the expanded UI and data flows.
+- README and README.zh-CN were substantially refined and synchronized with the latest product behavior.
+
 ## [0.1.3] - 2026-03-02
 
 ### Fixed

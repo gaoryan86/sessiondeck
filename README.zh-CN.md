@@ -180,7 +180,7 @@ SessionDeck/
 
 ## 项目状态
 
-- 当前版本：`v0.1.3`
+- 当前版本：`v0.1.4`
 - 发布记录见 [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## 贡献
