@@ -24,7 +24,7 @@ Claude Code stores sessions as local JSON files in `~/.claude/projects`. As your
 | Problem | Without SessionDeck | With SessionDeck |
 |---------|-------------------|-----------------|
 | **Finding old sessions** | Manually dig through JSON files | Visual table with search, sort, and filter |
-| **Lost context after compaction** | Gone forever — Claude auto-compacts long sessions | **Recovery view** reads pre-compact snapshots |
+| **Lost context after compaction** | Gone forever — Claude auto-compacts long sessions | **Session Timeline** reads pre-compact snapshots |
 | **Accidental deletion** | `rm` = permanent loss | Safe delete via system Trash only |
 | **Searching across sessions** | Impossible without scripting | Full-text search across all sessions + subagents |
 | **Exporting conversations** | Copy-paste from JSON | One-click Markdown export (single or batch) |
@@ -41,11 +41,17 @@ Claude Code stores sessions as local JSON files in `~/.claude/projects`. As your
 - **Batch selection & export** — export multiple sessions to Markdown at once
 - **Safe delete** — moves to system Trash, never hard-deletes
 
-### 🔍 Session Timeline (Recovery)
+### 🔍 Session Timeline
 - **Load full conversation timeline** by session ID (main session + subagents)
 - **View pre-compact context** — recover messages that Claude Code auto-compacted
 - **Locate compact points** — see exactly where and when compaction happened
 - **Export to Markdown** — save the full recovered timeline
+
+### ♻️ Recovery
+- **Restore deleted sessions** from system Trash back to original paths
+- **Search recoverable records** by session ID/path/status
+- **Track recovery status** (deleted / restored / failed)
+- **Return to Session Manager** after restore workflow
 
 ### 🔧 Advanced Tools
 - **Rebuild `sessions-index.json`** — fix corrupted index without touching session data
@@ -169,7 +175,7 @@ Yes. SessionDeck works on macOS, Windows, and Linux wherever Claude Code stores 
 <details>
 <summary><strong>Can I recover compacted sessions?</strong></summary>
 
-Yes — this is one of SessionDeck's core features. The Recovery view reads pre-compact snapshot data that Claude Code keeps but doesn't expose in its own UI.
+Yes — this is one of SessionDeck's core features. The `Session Timeline` tab reads pre-compact snapshot data that Claude Code keeps but doesn't expose in its own UI.
 </details>
 
 <details>
@@ -180,7 +186,7 @@ No. SessionDeck runs 100% locally. No data is ever sent anywhere.
 
 ## Project Status
 
-- Current release: `v0.1.4`
+- Current release: `v0.1.5`
 - See [`CHANGELOG.md`](./CHANGELOG.md) for release history
 
 ## Contributing

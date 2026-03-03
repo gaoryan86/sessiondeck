@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5] - 2026-03-03
+
+### Changed
+
+- Unified product terminology across docs to match the three-tab UI model:
+  `Session Manager`, `Session Timeline`, and `Recovery`.
+- Clarified that pre-compact context recovery belongs to `Session Timeline`.
+- Added explicit `Recovery` module description for Trash-based restore workflow.
+
 ## [0.1.4] - 2026-03-03
 
 ### Added

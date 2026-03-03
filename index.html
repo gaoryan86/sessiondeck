@@ -215,12 +215,46 @@
       text-transform: uppercase;
     }
 
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .root-inline {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.2px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px 10px;
+      max-width: 62vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .sub {
       color: var(--muted);
       font-size: 11px;
       letter-spacing: 0.2px;
       word-break: break-all;
       margin-top: 4px;
+    }
+
+    .sub-inline {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.2px;
+      border: 1px dashed var(--border);
+      border-radius: 999px;
+      padding: 3px 10px;
+      max-width: 72vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .controls {
@@ -240,6 +274,26 @@
       align-items: center;
       gap: 7px;
       flex-wrap: wrap;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 5px;
+    }
+
+    .field-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+
+    .field-help {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+      line-height: 1.35;
     }
 
     .manager-primary-controls {
@@ -337,6 +391,17 @@
       border-color: var(--accent);
     }
 
+    .btn-export {
+      border-color: rgba(16, 185, 129, 0.42);
+      color: var(--success);
+    }
+
+    .btn-export:hover {
+      background: var(--success);
+      color: var(--bg);
+      border-color: var(--success);
+    }
+
     .btn-timeline {
       border-color: rgba(245, 158, 11, 0.4);
       color: var(--warning);
@@ -371,6 +436,76 @@
     .toggle input {
       margin: 0;
       accent-color: var(--accent);
+    }
+
+    .btn-help {
+      border-style: dashed;
+      color: var(--muted);
+      padding: 6px 10px;
+    }
+
+    .btn-help:hover,
+    .btn-help[aria-expanded="true"] {
+      border-color: var(--warning);
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .help-panel {
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      padding: 9px 10px;
+      display: grid;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .help-title {
+      color: var(--text);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: minmax(140px, 200px) minmax(0, 1fr);
+      gap: 6px 10px;
+      align-items: start;
+    }
+
+    .help-group {
+      grid-column: 1 / -1;
+      margin-top: 2px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+      color: var(--ink-soft);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 700;
+    }
+
+    .help-group.first {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .help-key {
+      color: var(--ink-soft);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+    }
+
+    .help-value {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+      letter-spacing: 0.2px;
     }
 
     .layout {
@@ -596,15 +731,40 @@
       letter-spacing: 0.5px;
       display: inline-flex;
       align-items: center;
-      border: 1px dashed var(--border);
+      gap: 6px;
+      border: 1px solid var(--border);
       border-radius: 2px;
-      background: transparent;
+      background: rgba(255, 255, 255, 0.02);
       padding: 4px 10px;
       min-height: 28px;
       white-space: nowrap;
       font-size: 10px;
       text-transform: uppercase;
       pointer-events: none;
+    }
+
+    #globalSearchInfo::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--muted);
+      opacity: 0.85;
+    }
+
+    #globalSearchInfo.is-loading::before {
+      background: var(--warning);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.45);
+    }
+
+    #globalSearchInfo.is-done::before {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+    }
+
+    #globalSearchInfo.is-error::before {
+      background: var(--danger);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
     }
 
     .pill {
@@ -701,8 +861,27 @@
 
     .recovery-toolbar-grid {
       display: grid;
-      grid-template-columns: minmax(300px, 480px) 1fr;
+      grid-template-columns: minmax(420px, 1fr) auto;
       gap: 10px;
+      align-items: center;
+    }
+
+    .recovery-toolbar-grid>div:first-child {
+      min-width: 0;
+    }
+
+    .recovery-toolbar-grid .controls-right {
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      max-width: 100%;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+    }
+
+    .recovery-toolbar-grid .input,
+    .recovery-toolbar-grid .btn {
+      min-height: 34px;
     }
 
     .recovery-filters {
@@ -1031,6 +1210,12 @@
         grid-template-columns: 1fr;
       }
 
+      .recovery-toolbar-grid .controls-right {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+
       .manager-primary-controls {
         grid-template-columns: 1fr;
       }
@@ -1039,6 +1224,16 @@
         justify-content: flex-start;
         flex-wrap: wrap;
         overflow-x: visible;
+      }
+
+      .sub-inline {
+        max-width: 100%;
+        white-space: normal;
+        border-radius: 4px;
+      }
+
+      .help-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1104,14 +1299,14 @@
 
     <section id="view-manager" class="view active">
       <section class="toolbar">
-        <div>
+        <div class="title-row">
           <div class="title" data-i18n="manager.title">SessionDeck</div>
-          <div class="sub" id="rootPath">Loading...</div>
+          <div class="root-inline" id="rootPath" title="Loading...">Loading...</div>
         </div>
         <div class="controls manager-primary-controls">
           <div class="controls-left">
             <input id="searchInput" class="input" data-i18n-placeholder="manager.searchPlaceholder"
-              placeholder="Filter by summary / first prompt / last prompt / project / session ID" />
+              placeholder="Filter list only (summary / first / last / project / session ID)" />
           </div>
           <div class="controls-right">
             <label class="toggle" data-i18n-title="manager.hideEmptyTitle"
@@ -1119,29 +1314,79 @@
               <input id="hideEmptyToggle" type="checkbox" checked />
               <span data-i18n="manager.hideEmpty">Hide empty sessions</span>
             </label>
-            <button id="refreshBtn" class="btn" data-i18n="btn.refresh">Refresh</button>
-            <button id="clearBtn" class="btn" data-i18n="btn.clearFilter">Clear filter</button>
-            <button id="selectVisibleBtn" class="btn" data-i18n="btn.selectVisible">Select visible</button>
-            <button id="batchExportBtn" class="btn" data-i18n="btn.batchExport">Export</button>
-            <button id="rebuildIndexBtn" class="btn" data-i18n="btn.rebuildIndex">Rebuild index</button>
-            <button id="openRecoveryBtn" class="btn btn-timeline" disabled data-i18n="btn.openRecovery">Open Session
-              Timeline</button>
-            <button id="deleteBtn" class="btn btn-danger" disabled data-i18n="btn.deleteSelected">Delete
+            <button id="refreshBtn" class="btn" data-i18n="btn.refresh" data-i18n-title="manager.tip.refresh" title="Reload session list from local source">Refresh</button>
+            <button id="clearBtn" class="btn" data-i18n="btn.clearFilter" data-i18n-title="manager.tip.clearFilter" title="Clear list filter input">Clear filter</button>
+            <button id="selectVisibleBtn" class="btn" data-i18n="btn.selectVisible" data-i18n-title="manager.tip.selectVisible" title="Select all rows in current filtered result">Select filtered</button>
+            <button id="rebuildIndexBtn" class="btn" data-i18n="btn.rebuildIndex" data-i18n-title="manager.tip.rebuildIndex" title="Rebuild local sessions-index.json files">Rebuild index</button>
+            <button id="batchExportBtn" class="btn btn-export" data-i18n="btn.batchExport" data-i18n-title="manager.tip.export" title="Export selected sessions to markdown">Export</button>
+            <button id="openRecoveryBtn" class="btn btn-timeline" disabled data-i18n="btn.openRecovery" data-i18n-title="manager.tip.openTimeline" title="Open selected session in Session Timeline">Open Session Timeline</button>
+            <button id="deleteBtn" class="btn btn-danger" disabled data-i18n="btn.deleteSelected" data-i18n-title="manager.tip.delete" title="Move selected session files to Trash (recoverable)">Delete
               selected</button>
+            <button id="managerHelpToggleBtn" class="btn btn-help" data-help-toggle="managerHelpPanel" aria-expanded="false" data-i18n="btn.help" data-i18n-title="manager.tip.helpPanel" title="Show quick help panel">? Help</button>
+          </div>
+        </div>
+        <div id="managerHelpPanel" class="help-panel hidden">
+          <div class="help-title" data-i18n="help.manager.title">Quick Help</div>
+          <div class="help-grid">
+            <div class="help-group first" data-i18n="help.group.navigation">Navigation</div>
+            <div class="help-key" data-i18n="help.manager.topTabs.key">Top tabs</div>
+            <div class="help-value" data-i18n="help.manager.topTabs.value">Switches between Session Manager, Session Timeline, and Recovery views.</div>
+            <div class="help-key" data-i18n="help.manager.language.key">Language toggle</div>
+            <div class="help-value" data-i18n="help.manager.language.value">Switches interface language between English and Chinese.</div>
+
+            <div class="help-group" data-i18n="help.group.searchFilter">Search & Filter</div>
+            <div class="help-key" data-i18n="help.manager.filter.key">List Filter</div>
+            <div class="help-value" data-i18n="help.manager.filter.value">Filters only the current list rows, not message body.</div>
+            <div class="help-key" data-i18n="help.manager.hide.key">Hide empty sessions</div>
+            <div class="help-value" data-i18n="help.manager.hide.value">Hides rows where summary + first prompt + last prompt are all empty.</div>
+            <div class="help-key" data-i18n="help.manager.global.key">Global Search</div>
+            <div class="help-value" data-i18n="help.manager.global.value">Searches message content across sessions and returns matching snippets.</div>
+            <div class="help-key" data-i18n="help.manager.includeSubagents.key">Include subagents</div>
+            <div class="help-value" data-i18n="help.manager.includeSubagents.value">When enabled, global search also scans subagent logs.</div>
+            <div class="help-key" data-i18n="help.manager.resultJump.key">Global result row</div>
+            <div class="help-value" data-i18n="help.manager.resultJump.value">Click a global-search result row to jump directly to that session.</div>
+            <div class="help-key" data-i18n="help.manager.clearFilter.key">Clear filter</div>
+            <div class="help-value" data-i18n="help.manager.clearFilter.value">Clears the list filter input only.</div>
+            <div class="help-key" data-i18n="help.manager.clearResults.key">Clear results</div>
+            <div class="help-value" data-i18n="help.manager.clearResults.value">Clears global-search hits and restores normal list scope.</div>
+            <div class="help-key" data-i18n="help.manager.refresh.key">Refresh</div>
+            <div class="help-value" data-i18n="help.manager.refresh.value">Reloads the local session list and updates the table.</div>
+
+            <div class="help-group" data-i18n="help.group.bulkActions">Bulk Actions</div>
+            <div class="help-key" data-i18n="help.manager.row.key">Session row</div>
+            <div class="help-value" data-i18n="help.manager.row.value">Click any row to open details on the right; use checkbox for multi-select.</div>
+            <div class="help-key" data-i18n="help.manager.select.key">Select Filtered</div>
+            <div class="help-value" data-i18n="help.manager.select.value">Toggles select/unselect all rows currently shown after filtering.</div>
+            <div class="help-key" data-i18n="help.manager.export.key">Export</div>
+            <div class="help-value" data-i18n="help.manager.export.value">Exports selected sessions to Markdown files.</div>
+            <div class="help-key" data-i18n="help.manager.timeline.key">Open Session Timeline</div>
+            <div class="help-value" data-i18n="help.manager.timeline.value">Opens the selected session in timeline mode to inspect detailed logs.</div>
+            <div class="help-key" data-i18n="help.manager.delete.key">Delete selected</div>
+            <div class="help-value" data-i18n="help.manager.delete.value">Moves selected session files to Trash and keeps recoverable records.</div>
+            <div class="help-key" data-i18n="help.manager.rebuild.key">Rebuild index</div>
+            <div class="help-value" data-i18n="help.manager.rebuild.value">Rebuilds local sessions-index.json files for current projects.</div>
+
+            <div class="help-group" data-i18n="help.group.details">Detail Panel</div>
+            <div class="help-key" data-i18n="help.manager.previewTabs.key">Preview tabs</div>
+            <div class="help-value" data-i18n="help.manager.previewTabs.value">Switch between Overview, Prompts, User Messages, and Name/Tags panes.</div>
+            <div class="help-key" data-i18n="help.manager.nameTags.key">Save name/tags</div>
+            <div class="help-value" data-i18n="help.manager.nameTags.value">Saves custom name/tags in sidecar metadata, without editing original session files.</div>
+            <div class="help-key" data-i18n="help.manager.focus.key">Focus table</div>
+            <div class="help-value" data-i18n="help.manager.focus.value">Expands table area and temporarily hides right-side preview.</div>
           </div>
         </div>
         <div class="controls">
           <div class="controls-left">
             <input id="globalSearchInput" class="input" data-i18n-placeholder="manager.globalSearchPlaceholder"
-              placeholder="Search full text across all sessions" />
+              placeholder="Search message text across all sessions" />
           </div>
           <div class="controls-right">
-            <label class="toggle">
+            <label class="toggle" data-i18n-title="manager.tip.includeSubagents" title="Also search subagent logs">
               <input id="globalSearchSubagentsToggle" type="checkbox" />
               <span data-i18n="common.includeSubagents">Include subagents</span>
             </label>
-            <button id="globalSearchBtn" class="btn" data-i18n="btn.globalSearch">Global search</button>
-            <button id="globalSearchClearBtn" class="btn" data-i18n="btn.clearResults">Clear results</button>
+            <button id="globalSearchBtn" class="btn" data-i18n="btn.globalSearch" data-i18n-title="manager.tip.globalSearch" title="Run full-text search">Global search</button>
+            <button id="globalSearchClearBtn" class="btn" data-i18n="btn.clearResults" data-i18n-title="manager.tip.clearResults" title="Clear global search results">Clear results</button>
             <span id="globalSearchInfo">Search idle</span>
           </div>
         </div>
@@ -1218,9 +1463,9 @@
 
     <section id="view-recovery" class="view">
       <section class="toolbar">
-        <div>
+        <div class="title-row">
           <div class="title" data-i18n="recovery.title">Session Timeline</div>
-          <div class="sub" data-i18n="recovery.subtitle">Read main + subagent logs. Defaults to pre-compact context.
+          <div class="sub-inline" data-i18n="recovery.subtitle">Read main + subagent logs. Defaults to pre-compact context.
             Source files stay untouched.</div>
         </div>
 
@@ -1234,6 +1479,37 @@
             <button id="recoveryLocateCompactBtn" class="btn" data-i18n="btn.locateCompact">Locate compact</button>
             <button id="recoveryExportBtn" class="btn" data-i18n="btn.exportMarkdown">Export current view
               Markdown</button>
+            <button id="recoveryHelpToggleBtn" class="btn btn-help" data-help-toggle="recoveryHelpPanel" aria-expanded="false" data-i18n="btn.help" data-i18n-title="manager.tip.helpPanel" title="Show quick help panel">? Help</button>
+          </div>
+        </div>
+        <div id="recoveryHelpPanel" class="help-panel hidden">
+          <div class="help-title" data-i18n="help.recovery.title">Timeline Help</div>
+          <div class="help-grid">
+            <div class="help-group first" data-i18n="help.group.loadSession">Load Session</div>
+            <div class="help-key" data-i18n="help.recovery.load.key">Load Session</div>
+            <div class="help-value" data-i18n="help.recovery.load.value">Enter a full session UUID, then load timeline events.</div>
+            <div class="help-key" data-i18n="help.recovery.locate.key">Locate compact</div>
+            <div class="help-value" data-i18n="help.recovery.locate.value">Jumps to the first compact event and can disable pre-compact-only when needed.</div>
+
+            <div class="help-group" data-i18n="help.group.filterView">Filter View</div>
+            <div class="help-key" data-i18n="help.recovery.search.key">Search box</div>
+            <div class="help-value" data-i18n="help.recovery.search.value">Filters loaded timeline rows by keyword, phrase, or filename.</div>
+            <div class="help-key" data-i18n="help.recovery.role.key">Role filter</div>
+            <div class="help-value" data-i18n="help.recovery.role.value">Filters rows by USER / ASSISTANT / SYSTEM roles.</div>
+            <div class="help-key" data-i18n="help.recovery.pre.key">Pre-compact only</div>
+            <div class="help-value" data-i18n="help.recovery.pre.value">Shows messages before first compact point; turn off to see all events.</div>
+            <div class="help-key" data-i18n="help.recovery.sub.key">Include subagents</div>
+            <div class="help-value" data-i18n="help.recovery.sub.value">Also reads subagent log files for the same session.</div>
+            <div class="help-key" data-i18n="help.recovery.clearFilters.key">Clear filters</div>
+            <div class="help-value" data-i18n="help.recovery.clearFilters.value">Resets timeline filters to default values.</div>
+
+            <div class="help-group" data-i18n="help.group.inspectExport">Inspect & Export</div>
+            <div class="help-key" data-i18n="help.recovery.row.key">Timeline row</div>
+            <div class="help-value" data-i18n="help.recovery.row.value">Click a row to display full event details in the right panel.</div>
+            <div class="help-key" data-i18n="help.recovery.export.key">Export current view</div>
+            <div class="help-value" data-i18n="help.recovery.export.value">Exports currently visible timeline rows to Markdown.</div>
+            <div class="help-key" data-i18n="help.recovery.focus.key">Focus table</div>
+            <div class="help-value" data-i18n="help.recovery.focus.value">Expands timeline table area and hides right-side detail panel.</div>
           </div>
         </div>
 
@@ -1306,9 +1582,9 @@
 
     <section id="view-restore" class="view">
       <section class="toolbar">
-        <div>
+        <div class="title-row">
           <div class="title" data-i18n="restore.title">Recovery</div>
-          <div class="sub" data-i18n="restore.subtitle">Restore deleted sessions from Trash. Source files are only moved
+          <div class="sub-inline" data-i18n="restore.subtitle">Restore deleted sessions from Trash. Source files are only moved
             back to original paths.</div>
         </div>
       </section>
@@ -1329,6 +1605,25 @@
             </label>
             <button id="restoreRefreshBtn" class="btn" data-i18n="btn.refresh">Refresh</button>
             <button id="restoreCloseBtn" class="btn" data-i18n="btn.closeRecovery">Close</button>
+            <button id="restoreHelpToggleBtn" class="btn btn-help" data-help-toggle="restoreHelpPanel" aria-expanded="false" data-i18n="btn.help" data-i18n-title="manager.tip.helpPanel" title="Show quick help panel">? Help</button>
+          </div>
+        </div>
+        <div id="restoreHelpPanel" class="help-panel hidden" style="margin: 0 10px 8px;">
+          <div class="help-title" data-i18n="help.restore.title">Recovery Help</div>
+          <div class="help-grid">
+            <div class="help-group first" data-i18n="help.group.filterList">Filter & List</div>
+            <div class="help-key" data-i18n="help.restore.filter.key">Filter box</div>
+            <div class="help-value" data-i18n="help.restore.filter.value">Filters recovery records by session ID, path, or status.</div>
+            <div class="help-key" data-i18n="help.restore.show.key">Show restored</div>
+            <div class="help-value" data-i18n="help.restore.show.value">Includes already restored history records in the table.</div>
+            <div class="help-key" data-i18n="help.restore.refresh.key">Refresh</div>
+            <div class="help-value" data-i18n="help.restore.refresh.value">Reloads recovery records after delete/recover actions.</div>
+
+            <div class="help-group" data-i18n="help.group.actions">Actions</div>
+            <div class="help-key" data-i18n="help.restore.recover.key">Recover</div>
+            <div class="help-value" data-i18n="help.restore.recover.value">Moves the trashed session file back to its original path.</div>
+            <div class="help-key" data-i18n="help.restore.close.key">Close</div>
+            <div class="help-value" data-i18n="help.restore.close.value">Returns to Session Manager view.</div>
           </div>
         </div>
         <div class="subtable-wrap restore-wrap">
@@ -1360,14 +1655,19 @@
         'tab.recovery': 'Session Timeline',
         'tab.restore': 'Recovery',
         'manager.title': 'SessionDeck',
-        'manager.searchPlaceholder': 'Filter by summary / first prompt / last prompt / project / session ID',
+        'manager.searchPlaceholder': 'Filter list only (summary / first / last / project / session ID)',
+        'manager.quickFilterLabel': 'List Filter',
+        'manager.quickFilterHelp': 'Filters list metadata only (summary/first/last/project/session ID), not message body.',
+        'manager.globalSearchLabel': 'Global Search',
+        'manager.globalSearchHelp': 'Searches message content across sessions and returns matching snippets.',
+        'manager.actionHelp': 'Hover any control for quick help.',
         'manager.hideEmptyTitle': 'Hide sessions with empty first/last/summary',
         'manager.hideEmpty': 'Hide empty sessions',
         'manager.listHint': 'List prioritizes Project + Summary, then first/last prompts',
         'manager.previewTitle': 'Session Preview',
         'manager.previewHint': 'Click any row on the left',
         'manager.previewEmpty': 'Select a session on the left to preview details and recent user messages.',
-        'manager.globalSearchPlaceholder': 'Search full text across all sessions',
+        'manager.globalSearchPlaceholder': 'Search message text across all sessions',
         'manager.globalResultsTitle': 'Global Search Results',
         'manager.globalResultsHint': 'Click a result row to jump to that session',
         'manager.notSearched': 'Status: idle',
@@ -1405,6 +1705,97 @@
         'manager.deleteConfirm': 'Delete {count} session(s)?\n\nThis will:\n1) Move session files to system Trash\n2) Remove entries from sessions-index.json\n\nOpen Recovery to restore from Trash.',
         'manager.deleteDone': 'Delete done: {deleted}\nFailed: {failed}',
         'manager.deleteFailed': 'Delete failed: {message}',
+        'manager.tip.refresh': 'Reload session list from local source',
+        'manager.tip.clearFilter': 'Clear list filter input',
+        'manager.tip.selectVisible': 'Select all rows in current filtered result',
+        'manager.tip.export': 'Export selected sessions to markdown',
+        'manager.tip.rebuildIndex': 'Rebuild local sessions-index.json files',
+        'manager.tip.openTimeline': 'Open selected session in Session Timeline',
+        'manager.tip.delete': 'Move selected session files to Trash (recoverable)',
+        'manager.tip.globalSearch': 'Run full-text search',
+        'manager.tip.clearResults': 'Clear global search results',
+        'manager.tip.includeSubagents': 'Also search subagent logs',
+        'manager.tip.helpPanel': 'Show or hide quick help panel',
+        'help.group.navigation': 'Navigation',
+        'help.group.searchFilter': 'Search & Filter',
+        'help.group.bulkActions': 'Bulk Actions',
+        'help.group.details': 'Detail Panel',
+        'help.group.loadSession': 'Load Session',
+        'help.group.filterView': 'Filter View',
+        'help.group.inspectExport': 'Inspect & Export',
+        'help.group.filterList': 'Filter & List',
+        'help.group.actions': 'Actions',
+        'help.manager.title': 'Quick Help',
+        'help.manager.filter.key': 'List Filter',
+        'help.manager.filter.value': 'Filters only the current list rows, not message body.',
+        'help.manager.hide.key': 'Hide empty sessions',
+        'help.manager.hide.value': 'Hides rows where summary + first prompt + last prompt are all empty.',
+        'help.manager.refresh.key': 'Refresh',
+        'help.manager.refresh.value': 'Reloads the local session list and updates the table.',
+        'help.manager.clearFilter.key': 'Clear filter',
+        'help.manager.clearFilter.value': 'Clears the list filter input only.',
+        'help.manager.global.key': 'Global Search',
+        'help.manager.global.value': 'Searches message content across sessions and returns matching snippets.',
+        'help.manager.resultJump.key': 'Global result row',
+        'help.manager.resultJump.value': 'Click a global-search result row to jump directly to that session.',
+        'help.manager.includeSubagents.key': 'Include subagents',
+        'help.manager.includeSubagents.value': 'When enabled, global search also scans subagent logs.',
+        'help.manager.clearResults.key': 'Clear results',
+        'help.manager.clearResults.value': 'Clears global-search hits and restores normal list scope.',
+        'help.manager.row.key': 'Session row',
+        'help.manager.row.value': 'Click any row to open details on the right; use checkbox for multi-select.',
+        'help.manager.previewTabs.key': 'Preview tabs',
+        'help.manager.previewTabs.value': 'Switch between Overview, Prompts, User Messages, and Name/Tags panes.',
+        'help.manager.nameTags.key': 'Save name/tags',
+        'help.manager.nameTags.value': 'Saves custom name/tags in sidecar metadata, without editing original session files.',
+        'help.manager.select.key': 'Select Filtered',
+        'help.manager.select.value': 'Toggles select/unselect all rows currently shown after filtering.',
+        'help.manager.rebuild.key': 'Rebuild index',
+        'help.manager.rebuild.value': 'Rebuilds local sessions-index.json files for current projects.',
+        'help.manager.export.key': 'Export',
+        'help.manager.export.value': 'Exports selected sessions to Markdown files.',
+        'help.manager.timeline.key': 'Open Session Timeline',
+        'help.manager.timeline.value': 'Opens the selected session in timeline mode to inspect detailed logs.',
+        'help.manager.delete.key': 'Delete selected',
+        'help.manager.delete.value': 'Moves selected session files to Trash and keeps recoverable records.',
+        'help.manager.focus.key': 'Focus table',
+        'help.manager.focus.value': 'Expands table area and temporarily hides right-side preview.',
+        'help.manager.topTabs.key': 'Top tabs',
+        'help.manager.topTabs.value': 'Switches between Session Manager, Session Timeline, and Recovery views.',
+        'help.manager.language.key': 'Language toggle',
+        'help.manager.language.value': 'Switches interface language between English and Chinese.',
+        'help.recovery.title': 'Timeline Help',
+        'help.recovery.load.key': 'Load Session',
+        'help.recovery.load.value': 'Enter a full session UUID, then load timeline events.',
+        'help.recovery.locate.key': 'Locate compact',
+        'help.recovery.locate.value': 'Jumps to the first compact event and can disable pre-compact-only when needed.',
+        'help.recovery.pre.key': 'Pre-compact only',
+        'help.recovery.pre.value': 'Shows messages before first compact point; turn off to see all events.',
+        'help.recovery.sub.key': 'Include subagents',
+        'help.recovery.sub.value': 'Also reads subagent log files for the same session.',
+        'help.recovery.search.key': 'Search box',
+        'help.recovery.search.value': 'Filters loaded timeline rows by keyword, phrase, or filename.',
+        'help.recovery.role.key': 'Role filter',
+        'help.recovery.role.value': 'Filters rows by USER / ASSISTANT / SYSTEM roles.',
+        'help.recovery.clearFilters.key': 'Clear filters',
+        'help.recovery.clearFilters.value': 'Resets timeline filters to default values.',
+        'help.recovery.export.key': 'Export current view',
+        'help.recovery.export.value': 'Exports currently visible timeline rows to Markdown.',
+        'help.recovery.row.key': 'Timeline row',
+        'help.recovery.row.value': 'Click a row to display full event details in the right panel.',
+        'help.recovery.focus.key': 'Focus table',
+        'help.recovery.focus.value': 'Expands timeline table area and hides right-side detail panel.',
+        'help.restore.title': 'Recovery Help',
+        'help.restore.filter.key': 'Filter box',
+        'help.restore.filter.value': 'Filters recovery records by session ID, path, or status.',
+        'help.restore.refresh.key': 'Refresh',
+        'help.restore.refresh.value': 'Reloads recovery records after delete/recover actions.',
+        'help.restore.show.key': 'Show restored',
+        'help.restore.show.value': 'Includes already restored history records in the table.',
+        'help.restore.recover.key': 'Recover',
+        'help.restore.recover.value': 'Moves the trashed session file back to its original path.',
+        'help.restore.close.key': 'Close',
+        'help.restore.close.value': 'Returns to Session Manager view.',
         'restore.title': 'Recovery',
         'restore.subtitle': 'Restore deleted sessions from Trash. Source files are only moved back to original paths.',
         'restore.infoInit': 'Delete first to see recoverable records',
@@ -1451,10 +1842,11 @@
         'btn.refresh': 'Refresh',
         'btn.refreshing': 'Refreshing...',
         'btn.clearFilter': 'Clear filter',
-        'btn.selectVisible': 'Select visible',
+        'btn.selectVisible': 'Select filtered',
         'btn.batchExport': 'Export',
         'btn.rebuildIndex': 'Rebuild index',
         'btn.openRecovery': 'Open Session Timeline',
+        'btn.help': '? Help',
         'btn.recover': 'Recover',
         'btn.closeRecovery': 'Back to Manager',
         'btn.deleteSelected': 'Delete selected',
@@ -1506,14 +1898,19 @@
         'tab.recovery': '会话时间线',
         'tab.restore': '恢复',
         'manager.title': 'SessionDeck',
-        'manager.searchPlaceholder': '关键词过滤：摘要 / 首条提示词 / 末条提示词 / 项目 / 会话ID',
+        'manager.searchPlaceholder': '仅筛列表（摘要/首条/末条/项目/会话ID，不搜正文）',
+        'manager.quickFilterLabel': '列表筛选',
+        'manager.quickFilterHelp': '仅筛列表元信息（摘要/首条/末条/项目/会话ID），不搜索消息正文。',
+        'manager.globalSearchLabel': '全文检索',
+        'manager.globalSearchHelp': '搜索会话消息正文，并返回命中片段。',
+        'manager.actionHelp': '悬停控件可看说明。',
         'manager.hideEmptyTitle': '隐藏首条/末条/摘要都为空的会话',
         'manager.hideEmpty': '隐藏空会话',
         'manager.listHint': '列表优先显示项目与摘要，再看首条/末条提示词',
         'manager.previewTitle': '会话详情预览',
         'manager.previewHint': '点击左侧任意会话行',
         'manager.previewEmpty': '先在左侧点一个会话，右侧会显示完整信息和最近用户消息。',
-        'manager.globalSearchPlaceholder': '跨所有会话全文搜索（输入关键词后点搜索）',
+        'manager.globalSearchPlaceholder': '搜索所有会话的消息正文（含内容片段）',
         'manager.globalResultsTitle': '全局全文搜索结果',
         'manager.globalResultsHint': '点击结果行可直接定位到该会话详情',
         'manager.notSearched': '状态：空闲',
@@ -1551,6 +1948,97 @@
         'manager.deleteConfirm': '确认删除 {count} 条会话？\n\n操作内容：\n1) 会话文件移动到系统废纸篓 (trash)\n2) 从 sessions-index.json 移除索引\n\n可在“恢复”页签中恢复。',
         'manager.deleteDone': '删除完成：{deleted} 条\n失败：{failed} 条',
         'manager.deleteFailed': '删除失败：{message}',
+        'manager.tip.refresh': '从本地数据源重新加载会话列表',
+        'manager.tip.clearFilter': '清空列表筛选输入',
+        'manager.tip.selectVisible': '选中当前筛选结果中的全部会话行',
+        'manager.tip.export': '将已选会话导出为 markdown',
+        'manager.tip.rebuildIndex': '重建本地 sessions-index.json 索引文件',
+        'manager.tip.openTimeline': '在会话时间线中打开当前选中会话',
+        'manager.tip.delete': '将已选会话移入废纸篓（可恢复）',
+        'manager.tip.globalSearch': '执行全文检索',
+        'manager.tip.clearResults': '清空全文检索结果',
+        'manager.tip.includeSubagents': '同时检索子代理日志',
+        'manager.tip.helpPanel': '显示或收起快速说明面板',
+        'help.group.navigation': '导航',
+        'help.group.searchFilter': '搜索与过滤',
+        'help.group.bulkActions': '批量操作',
+        'help.group.details': '详情面板',
+        'help.group.loadSession': '加载会话',
+        'help.group.filterView': '过滤视图',
+        'help.group.inspectExport': '查看与导出',
+        'help.group.filterList': '过滤与列表',
+        'help.group.actions': '操作',
+        'help.manager.title': '快速说明',
+        'help.manager.filter.key': '列表筛选',
+        'help.manager.filter.value': '只过滤当前列表行，不会搜索消息正文。',
+        'help.manager.hide.key': '隐藏空会话',
+        'help.manager.hide.value': '隐藏摘要、首条提示词、末条提示词都为空的会话行。',
+        'help.manager.refresh.key': '刷新',
+        'help.manager.refresh.value': '重新读取本地会话列表并刷新表格。',
+        'help.manager.clearFilter.key': '清空过滤',
+        'help.manager.clearFilter.value': '只清空列表筛选输入框。',
+        'help.manager.global.key': '全文搜索',
+        'help.manager.global.value': '搜索会话消息正文，并返回命中片段。',
+        'help.manager.resultJump.key': '命中结果行',
+        'help.manager.resultJump.value': '点击全文搜索结果行，可直接跳到对应会话。',
+        'help.manager.includeSubagents.key': '包含子代理',
+        'help.manager.includeSubagents.value': '开启后，全文搜索会同时扫描子代理日志。',
+        'help.manager.clearResults.key': '清空结果',
+        'help.manager.clearResults.value': '清空全文命中并恢复普通列表范围。',
+        'help.manager.row.key': '会话行',
+        'help.manager.row.value': '点击行可在右侧打开详情；勾选复选框可做多选。',
+        'help.manager.previewTabs.key': '预览标签页',
+        'help.manager.previewTabs.value': '可在概览、提示词、用户消息、命名/标签之间切换。',
+        'help.manager.nameTags.key': '保存命名/标签',
+        'help.manager.nameTags.value': '把自定义名称和标签保存到 sidecar 元数据，不改原会话文件。',
+        'help.manager.select.key': '选择筛选结果',
+        'help.manager.select.value': '对当前筛选后可见的行执行全选/取消全选。',
+        'help.manager.rebuild.key': '重建索引',
+        'help.manager.rebuild.value': '重建当前项目的本地 sessions-index.json 文件。',
+        'help.manager.export.key': '导出',
+        'help.manager.export.value': '把已选会话导出为 Markdown 文件。',
+        'help.manager.timeline.key': '打开会话时间线',
+        'help.manager.timeline.value': '在时间线模式打开当前选中会话，查看详细日志。',
+        'help.manager.delete.key': '删除已选',
+        'help.manager.delete.value': '把已选会话移到废纸篓，并保留可恢复记录。',
+        'help.manager.focus.key': '专注表格',
+        'help.manager.focus.value': '扩大表格区域并临时隐藏右侧预览。',
+        'help.manager.topTabs.key': '顶部页签',
+        'help.manager.topTabs.value': '在会话管理、会话时间线、恢复三个视图间切换。',
+        'help.manager.language.key': '语言切换',
+        'help.manager.language.value': '在英文和中文界面之间切换。',
+        'help.recovery.title': '时间线说明',
+        'help.recovery.load.key': '加载会话',
+        'help.recovery.load.value': '输入完整会话 UUID 后，加载时间线事件。',
+        'help.recovery.locate.key': '定位压缩点',
+        'help.recovery.locate.value': '跳转到首次压缩事件，必要时会关闭“只看压缩前”。',
+        'help.recovery.pre.key': '只看压缩前',
+        'help.recovery.pre.value': '仅显示首次压缩点之前的消息；关闭后显示全部事件。',
+        'help.recovery.sub.key': '包含子代理',
+        'help.recovery.sub.value': '同时读取该会话的子代理日志文件。',
+        'help.recovery.search.key': '搜索框',
+        'help.recovery.search.value': '按关键词、句子片段或文件名过滤已加载时间线。',
+        'help.recovery.role.key': '角色过滤',
+        'help.recovery.role.value': '按 USER / ASSISTANT / SYSTEM 角色过滤记录。',
+        'help.recovery.clearFilters.key': '清空过滤',
+        'help.recovery.clearFilters.value': '把时间线过滤条件恢复为默认值。',
+        'help.recovery.export.key': '导出当前视图',
+        'help.recovery.export.value': '把当前可见的时间线记录导出为 Markdown。',
+        'help.recovery.row.key': '时间线行',
+        'help.recovery.row.value': '点击某条记录，可在右侧查看完整事件详情。',
+        'help.recovery.focus.key': '专注表格',
+        'help.recovery.focus.value': '扩大时间线表格区域并隐藏右侧详情。',
+        'help.restore.title': '恢复说明',
+        'help.restore.filter.key': '过滤框',
+        'help.restore.filter.value': '按会话 ID、路径或状态过滤恢复记录。',
+        'help.restore.refresh.key': '刷新',
+        'help.restore.refresh.value': '删除/恢复后重新加载恢复记录。',
+        'help.restore.show.key': '显示已恢复',
+        'help.restore.show.value': '把已恢复的历史记录也显示在表格里。',
+        'help.restore.recover.key': '恢复',
+        'help.restore.recover.value': '把废纸篓中的会话文件移回原路径。',
+        'help.restore.close.key': '关闭',
+        'help.restore.close.value': '返回会话管理视图。',
         'restore.title': '恢复',
         'restore.subtitle': '从废纸篓恢复已删除会话。只会把文件移回原路径，不会改写源内容。',
         'restore.infoInit': '先删除会话，才会出现可恢复记录',
@@ -1597,10 +2085,11 @@
         'btn.refresh': '刷新',
         'btn.refreshing': '刷新中...',
         'btn.clearFilter': '清空过滤',
-        'btn.selectVisible': '选择当前结果',
+        'btn.selectVisible': '选择筛选结果',
         'btn.batchExport': '导出',
         'btn.rebuildIndex': '重建索引',
         'btn.openRecovery': '打开会话时间线',
+        'btn.help': '？说明',
         'btn.recover': '恢复',
         'btn.closeRecovery': '返回会话管理',
         'btn.deleteSelected': '删除已选',
@@ -1694,6 +2183,7 @@
 
     const els = {
       tabs: [...document.querySelectorAll('.tab-btn')],
+      helpToggles: [...document.querySelectorAll('[data-help-toggle]')],
       views: {
         manager: document.getElementById('view-manager'),
         recovery: document.getElementById('view-recovery'),
@@ -1882,20 +2372,25 @@
 
     function renderRootPath() {
       const root = state.manager.rootPath || t('common.unknown');
-      els.rootPath.textContent = t('manager.rootPath', { root });
+      els.rootPath.textContent = root;
+      els.rootPath.setAttribute('title', root);
     }
 
     function renderGlobalSearchInfo() {
       const m = state.manager;
+      els.globalSearchInfo.classList.remove('is-loading', 'is-done', 'is-error');
       if (m.globalSearchStatus === 'loading') {
+        els.globalSearchInfo.classList.add('is-loading');
         els.globalSearchInfo.textContent = t('manager.searching');
         return;
       }
       if (m.globalSearchStatus === 'error') {
+        els.globalSearchInfo.classList.add('is-error');
         els.globalSearchInfo.textContent = m.globalSearchError || t('manager.notSearched');
         return;
       }
       if (m.globalSearchStatus === 'done') {
+        els.globalSearchInfo.classList.add('is-done');
         els.globalSearchInfo.textContent = t('manager.resultsCount', { count: m.globalHits.length });
         return;
       }
@@ -3035,6 +3530,35 @@
       });
     }
 
+    function bindHelpEvents() {
+      for (const btn of els.helpToggles) {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.helpToggle;
+          if (!targetId) return;
+          const panel = document.getElementById(targetId);
+          if (!panel) return;
+
+          const willOpen = panel.classList.contains('hidden');
+          for (const otherBtn of els.helpToggles) {
+            const otherId = otherBtn.dataset.helpToggle;
+            if (!otherId) continue;
+            const otherPanel = document.getElementById(otherId);
+            if (!otherPanel) continue;
+            otherPanel.classList.add('hidden');
+            otherBtn.setAttribute('aria-expanded', 'false');
+          }
+
+          if (willOpen) {
+            panel.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+          } else {
+            panel.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+    }
+
     function bindTabEvents() {
       for (const btn of els.tabs) {
         btn.addEventListener('click', async () => {
@@ -3056,6 +3580,7 @@
 
     async function init() {
       bindTabEvents();
+      bindHelpEvents();
       bindManagerEvents();
       bindRestoreEvents();
       bindRecoveryEvents();
