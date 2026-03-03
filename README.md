@@ -186,7 +186,7 @@ No. SessionDeck runs 100% locally. No data is ever sent anywhere.
 
 ## Project Status
 
-- Current release: `v0.1.5`
+- Current release: `v0.1.6`
 - See [`CHANGELOG.md`](./CHANGELOG.md) for release history
 
 ## Contributing

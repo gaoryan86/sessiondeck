@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] - 2026-03-03
+
+### Fixed
+
+- Fixed macOS Spotlight launcher breakage after moving the project directory.
+- `scripts/install-macos-launcher.sh` now installs a stable helper script in `~/Applications` and points `Session Deck.app` to that helper.
+- Launcher helper now searches common project locations when the old absolute path is no longer valid.
+
 ## [0.1.5] - 2026-03-03
 
 ### Changed

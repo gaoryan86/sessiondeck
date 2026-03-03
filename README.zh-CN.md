@@ -186,7 +186,7 @@ SessionDeck/
 
 ## 项目状态
 
-- 当前版本：`v0.1.5`
+- 当前版本：`v0.1.6`
 - 发布记录见 [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## 贡献
