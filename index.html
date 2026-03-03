@@ -322,6 +322,64 @@
       flex: 0 0 auto;
     }
 
+    .manager-global-controls {
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .manager-global-controls .controls-left {
+      min-width: 0;
+      flex: unset;
+    }
+
+    .manager-global-controls .controls-right {
+      flex: unset;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .manager-global-advanced {
+      margin-top: 6px;
+      align-items: center;
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+    }
+
+    .manager-global-advanced-fields {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      flex: 1 1 auto;
+      min-width: 320px;
+    }
+
+    .manager-global-advanced-fields .global-aux-input {
+      width: 280px;
+      min-width: 220px;
+      flex: 1 1 280px;
+    }
+
+    .manager-global-advanced-fields .global-time-input {
+      width: 190px;
+      min-width: 170px;
+      flex: 0 1 190px;
+    }
+
+    .manager-global-advanced-note {
+      font-size: 10px;
+      letter-spacing: 0.3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      border: 1px dashed var(--border);
+      border-radius: 2px;
+      padding: 6px 9px;
+      white-space: nowrap;
+    }
+
     .input,
     .select {
       width: 100%;
@@ -339,6 +397,16 @@
     .input:focus,
     .select:focus {
       border-color: var(--muted);
+    }
+
+    .global-aux-input {
+      width: 210px;
+      min-width: 170px;
+    }
+
+    .global-time-input {
+      width: 184px;
+      min-width: 156px;
     }
 
     .btn {
@@ -449,6 +517,19 @@
       border-color: var(--warning);
       color: var(--warning);
       background: rgba(245, 158, 11, 0.08);
+    }
+
+    .btn-filters {
+      border-color: rgba(245, 158, 11, 0.55);
+      color: var(--warning);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .btn-filters:hover,
+    .btn-filters[aria-expanded="true"] {
+      border-color: var(--warning);
+      color: #0a0a0a;
+      background: var(--warning);
     }
 
     .help-panel {
@@ -732,9 +813,9 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border: 1px solid var(--border);
+      border: 1px dashed var(--border);
       border-radius: 2px;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.01);
       padding: 4px 10px;
       min-height: 28px;
       white-space: nowrap;
@@ -1226,6 +1307,28 @@
         overflow-x: visible;
       }
 
+      .manager-global-controls .controls-left {
+        width: 100%;
+      }
+
+      .manager-global-controls .controls-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .manager-global-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .manager-global-advanced .controls-right {
+        width: 100%;
+      }
+
+      .manager-global-advanced-note {
+        white-space: normal;
+      }
+
       .sub-inline {
         max-width: 100%;
         white-space: normal;
@@ -1274,6 +1377,17 @@
 
       table {
         min-width: 840px;
+      }
+
+      .manager-global-advanced-fields {
+        min-width: 0;
+      }
+
+      .manager-global-advanced-fields .global-aux-input,
+      .manager-global-advanced-fields .global-time-input {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
       }
     }
   </style>
@@ -1341,6 +1455,12 @@
             <div class="help-value" data-i18n="help.manager.hide.value">Hides rows where summary + first prompt + last prompt are all empty.</div>
             <div class="help-key" data-i18n="help.manager.global.key">Global Search</div>
             <div class="help-value" data-i18n="help.manager.global.value">Searches message content across sessions and returns matching snippets.</div>
+            <div class="help-key" data-i18n="help.manager.advanced.key">Advanced filters</div>
+            <div class="help-value" data-i18n="help.manager.advanced.value">Expand to use optional project and time filters for global search.</div>
+            <div class="help-key" data-i18n="help.manager.globalProject.key">Project filter</div>
+            <div class="help-value" data-i18n="help.manager.globalProject.value">Optional: only search sessions whose project path matches this text.</div>
+            <div class="help-key" data-i18n="help.manager.globalTime.key">Time range</div>
+            <div class="help-value" data-i18n="help.manager.globalTime.value">Optional: use From/To dates to search messages within a date range.</div>
             <div class="help-key" data-i18n="help.manager.includeSubagents.key">Include subagents</div>
             <div class="help-value" data-i18n="help.manager.includeSubagents.value">When enabled, global search also scans subagent logs.</div>
             <div class="help-key" data-i18n="help.manager.resultJump.key">Global result row</div>
@@ -1375,19 +1495,37 @@
             <div class="help-value" data-i18n="help.manager.focus.value">Expands table area and temporarily hides right-side preview.</div>
           </div>
         </div>
-        <div class="controls">
+        <div class="controls manager-global-controls">
           <div class="controls-left">
             <input id="globalSearchInput" class="input" data-i18n-placeholder="manager.globalSearchPlaceholder"
               placeholder="Search message text across all sessions" />
           </div>
           <div class="controls-right">
+            <button id="globalSearchBtn" class="btn" data-i18n="btn.globalSearch" data-i18n-title="manager.tip.globalSearch" title="Run full-text search">Global search</button>
+            <button id="globalSearchClearBtn" class="btn" data-i18n="btn.clearResults" data-i18n-title="manager.tip.clearResults" title="Clear global search results">Clear results</button>
+            <button id="globalAdvancedToggleBtn" class="btn btn-filters" aria-expanded="false" data-i18n="btn.moreFilters" data-i18n-title="manager.tip.moreFilters" title="Show or hide advanced filters (project + date)">Advanced filters</button>
+            <span id="globalSearchInfo">Search idle</span>
+          </div>
+        </div>
+        <div id="globalAdvancedRow" class="controls manager-global-advanced hidden">
+          <div class="controls-left manager-global-advanced-fields">
+            <input id="globalProjectInput" class="input global-aux-input"
+              data-i18n-placeholder="manager.globalProjectPlaceholder"
+              data-i18n-title="manager.tip.globalProject"
+              placeholder="Optional: project keyword" title="Optional: only search sessions whose project path matches this text" />
+            <input id="globalFromInput" class="input global-time-input" type="date"
+              data-i18n-title="manager.tip.globalFrom"
+              title="Optional: only search messages on or after this date" />
+            <input id="globalToInput" class="input global-time-input" type="date"
+              data-i18n-title="manager.tip.globalTo"
+              title="Optional: only search messages on or before this date" />
             <label class="toggle" data-i18n-title="manager.tip.includeSubagents" title="Also search subagent logs">
               <input id="globalSearchSubagentsToggle" type="checkbox" />
               <span data-i18n="common.includeSubagents">Include subagents</span>
             </label>
-            <button id="globalSearchBtn" class="btn" data-i18n="btn.globalSearch" data-i18n-title="manager.tip.globalSearch" title="Run full-text search">Global search</button>
-            <button id="globalSearchClearBtn" class="btn" data-i18n="btn.clearResults" data-i18n-title="manager.tip.clearResults" title="Clear global search results">Clear results</button>
-            <span id="globalSearchInfo">Search idle</span>
+          </div>
+          <div class="controls-right">
+            <span class="manager-global-advanced-note" data-i18n="manager.globalAdvancedHint">Optional filters: project + date range.</span>
           </div>
         </div>
       </section>
@@ -1667,7 +1805,9 @@
         'manager.previewTitle': 'Session Preview',
         'manager.previewHint': 'Click any row on the left',
         'manager.previewEmpty': 'Select a session on the left to preview details and recent user messages.',
-        'manager.globalSearchPlaceholder': 'Search message text across all sessions',
+        'manager.globalSearchPlaceholder': 'Search message text',
+        'manager.globalProjectPlaceholder': 'Optional: project path keyword',
+        'manager.globalAdvancedHint': 'Optional filters: project + date range.',
         'manager.globalResultsTitle': 'Global Search Results',
         'manager.globalResultsHint': 'Click a result row to jump to that session',
         'manager.notSearched': 'Status: idle',
@@ -1702,18 +1842,23 @@
         'manager.rootPath': 'Session Root: {root}',
         'manager.rebuildDone': 'Index rebuild completed\nProjects: {projects}\nSessions: {sessions}',
         'manager.enterSearchKeyword': 'Enter a search keyword',
+        'manager.invalidDateRange': 'Invalid date range: "From date" cannot be later than "To date".',
         'manager.deleteConfirm': 'Delete {count} session(s)?\n\nThis will:\n1) Move session files to system Trash\n2) Remove entries from sessions-index.json\n\nOpen Recovery to restore from Trash.',
         'manager.deleteDone': 'Delete done: {deleted}\nFailed: {failed}',
         'manager.deleteFailed': 'Delete failed: {message}',
         'manager.tip.refresh': 'Reload session list from local source',
         'manager.tip.clearFilter': 'Clear list filter input',
         'manager.tip.selectVisible': 'Select all rows in current filtered result',
-        'manager.tip.export': 'Export selected sessions to markdown',
+        'manager.tip.export': 'Export selected sessions to markdown (saved to browser download folder)',
         'manager.tip.rebuildIndex': 'Rebuild local sessions-index.json files',
         'manager.tip.openTimeline': 'Open selected session in Session Timeline',
         'manager.tip.delete': 'Move selected session files to Trash (recoverable)',
         'manager.tip.globalSearch': 'Run full-text search',
         'manager.tip.clearResults': 'Clear global search results',
+        'manager.tip.moreFilters': 'Show or hide advanced filters (project + date)',
+        'manager.tip.globalProject': 'Optional: only search sessions whose project path contains this text',
+        'manager.tip.globalFrom': 'Optional: only search messages on or after this date',
+        'manager.tip.globalTo': 'Optional: only search messages on or before this date',
         'manager.tip.includeSubagents': 'Also search subagent logs',
         'manager.tip.helpPanel': 'Show or hide quick help panel',
         'help.group.navigation': 'Navigation',
@@ -1736,6 +1881,8 @@
         'help.manager.clearFilter.value': 'Clears the list filter input only.',
         'help.manager.global.key': 'Global Search',
         'help.manager.global.value': 'Searches message content across sessions and returns matching snippets.',
+        'help.manager.advanced.key': 'Advanced filters',
+        'help.manager.advanced.value': 'Expand to use optional project and time filters for global search.',
         'help.manager.resultJump.key': 'Global result row',
         'help.manager.resultJump.value': 'Click a global-search result row to jump directly to that session.',
         'help.manager.includeSubagents.key': 'Include subagents',
@@ -1753,7 +1900,11 @@
         'help.manager.rebuild.key': 'Rebuild index',
         'help.manager.rebuild.value': 'Rebuilds local sessions-index.json files for current projects.',
         'help.manager.export.key': 'Export',
-        'help.manager.export.value': 'Exports selected sessions to Markdown files.',
+        'help.manager.export.value': 'Exports selected sessions to Markdown files in your browser download folder.',
+        'help.manager.globalProject.key': 'Project filter',
+        'help.manager.globalProject.value': 'Optional: limit global search to sessions whose project path matches this text.',
+        'help.manager.globalTime.key': 'Time range',
+        'help.manager.globalTime.value': 'Optional: use From/To dates to search messages within a date range.',
         'help.manager.timeline.key': 'Open Session Timeline',
         'help.manager.timeline.value': 'Opens the selected session in timeline mode to inspect detailed logs.',
         'help.manager.delete.key': 'Delete selected',
@@ -1852,6 +2003,8 @@
         'btn.deleteSelected': 'Delete selected',
         'btn.globalSearch': 'Global search',
         'btn.clearResults': 'Clear results',
+        'btn.moreFilters': 'Advanced filters',
+        'btn.hideFilters': 'Hide advanced',
         'btn.loadSession': 'Load Session',
         'btn.locateCompact': 'Locate compact',
         'btn.exportMarkdown': 'Export current view Markdown',
@@ -1910,7 +2063,9 @@
         'manager.previewTitle': '会话详情预览',
         'manager.previewHint': '点击左侧任意会话行',
         'manager.previewEmpty': '先在左侧点一个会话，右侧会显示完整信息和最近用户消息。',
-        'manager.globalSearchPlaceholder': '搜索所有会话的消息正文（含内容片段）',
+        'manager.globalSearchPlaceholder': '搜索消息正文',
+        'manager.globalProjectPlaceholder': '可选：项目路径关键词',
+        'manager.globalAdvancedHint': '可选筛选：项目 + 日期范围。',
         'manager.globalResultsTitle': '全局全文搜索结果',
         'manager.globalResultsHint': '点击结果行可直接定位到该会话详情',
         'manager.notSearched': '状态：空闲',
@@ -1945,18 +2100,23 @@
         'manager.rootPath': '会话根目录：{root}',
         'manager.rebuildDone': '索引重建完成\n项目目录: {projects}\n会话数: {sessions}',
         'manager.enterSearchKeyword': '请输入搜索关键词',
+        'manager.invalidDateRange': '日期范围无效：开始日期不能晚于结束日期。',
         'manager.deleteConfirm': '确认删除 {count} 条会话？\n\n操作内容：\n1) 会话文件移动到系统废纸篓 (trash)\n2) 从 sessions-index.json 移除索引\n\n可在“恢复”页签中恢复。',
         'manager.deleteDone': '删除完成：{deleted} 条\n失败：{failed} 条',
         'manager.deleteFailed': '删除失败：{message}',
         'manager.tip.refresh': '从本地数据源重新加载会话列表',
         'manager.tip.clearFilter': '清空列表筛选输入',
         'manager.tip.selectVisible': '选中当前筛选结果中的全部会话行',
-        'manager.tip.export': '将已选会话导出为 markdown',
+        'manager.tip.export': '将已选会话导出为 markdown（保存到浏览器默认下载目录）',
         'manager.tip.rebuildIndex': '重建本地 sessions-index.json 索引文件',
         'manager.tip.openTimeline': '在会话时间线中打开当前选中会话',
         'manager.tip.delete': '将已选会话移入废纸篓（可恢复）',
         'manager.tip.globalSearch': '执行全文检索',
         'manager.tip.clearResults': '清空全文检索结果',
+        'manager.tip.moreFilters': '展开或收起高级筛选（项目 + 日期）',
+        'manager.tip.globalProject': '可选：仅搜索项目路径包含该文本的会话',
+        'manager.tip.globalFrom': '可选：仅搜索该日期及之后的消息',
+        'manager.tip.globalTo': '可选：仅搜索该日期及之前的消息',
         'manager.tip.includeSubagents': '同时检索子代理日志',
         'manager.tip.helpPanel': '显示或收起快速说明面板',
         'help.group.navigation': '导航',
@@ -1979,6 +2139,8 @@
         'help.manager.clearFilter.value': '只清空列表筛选输入框。',
         'help.manager.global.key': '全文搜索',
         'help.manager.global.value': '搜索会话消息正文，并返回命中片段。',
+        'help.manager.advanced.key': '高级筛选',
+        'help.manager.advanced.value': '展开后可用项目与时间的可选筛选条件。',
         'help.manager.resultJump.key': '命中结果行',
         'help.manager.resultJump.value': '点击全文搜索结果行，可直接跳到对应会话。',
         'help.manager.includeSubagents.key': '包含子代理',
@@ -1996,7 +2158,11 @@
         'help.manager.rebuild.key': '重建索引',
         'help.manager.rebuild.value': '重建当前项目的本地 sessions-index.json 文件。',
         'help.manager.export.key': '导出',
-        'help.manager.export.value': '把已选会话导出为 Markdown 文件。',
+        'help.manager.export.value': '把已选会话导出为 Markdown 文件（保存到浏览器默认下载目录）。',
+        'help.manager.globalProject.key': '项目筛选',
+        'help.manager.globalProject.value': '可选：只在项目路径匹配该文本的会话中执行全文搜索。',
+        'help.manager.globalTime.key': '时间范围',
+        'help.manager.globalTime.value': '可选：通过开始/结束日期，仅搜索该日期范围内的消息。',
         'help.manager.timeline.key': '打开会话时间线',
         'help.manager.timeline.value': '在时间线模式打开当前选中会话，查看详细日志。',
         'help.manager.delete.key': '删除已选',
@@ -2095,6 +2261,8 @@
         'btn.deleteSelected': '删除已选',
         'btn.globalSearch': '全文搜索',
         'btn.clearResults': '清空结果',
+        'btn.moreFilters': '高级筛选',
+        'btn.hideFilters': '收起高级筛选',
         'btn.loadSession': '加载会话',
         'btn.locateCompact': '定位压缩点',
         'btn.exportMarkdown': '导出当前视图（Markdown）',
@@ -2151,11 +2319,16 @@
         activeKey: null,
         activeDetail: null,
         rootPath: '',
+        rootPaths: [],
         query: '',
         hideEmpty: true,
         focusTable: false,
         globalHits: [],
         globalFilterKeys: null,
+        globalProject: '',
+        globalFrom: '',
+        globalTo: '',
+        globalAdvancedOpen: false,
         globalSearchStatus: 'idle',
         globalSearchError: '',
         previewTab: 'summary',
@@ -2209,6 +2382,11 @@
       preview: document.getElementById('preview'),
       managerFocusBtn: document.getElementById('managerFocusBtn'),
       globalSearchInput: document.getElementById('globalSearchInput'),
+      globalAdvancedRow: document.getElementById('globalAdvancedRow'),
+      globalAdvancedToggleBtn: document.getElementById('globalAdvancedToggleBtn'),
+      globalProjectInput: document.getElementById('globalProjectInput'),
+      globalFromInput: document.getElementById('globalFromInput'),
+      globalToInput: document.getElementById('globalToInput'),
       globalSearchSubagentsToggle: document.getElementById('globalSearchSubagentsToggle'),
       globalSearchBtn: document.getElementById('globalSearchBtn'),
       globalSearchClearBtn: document.getElementById('globalSearchClearBtn'),
@@ -2279,6 +2457,7 @@
       }
       renderRootPath();
       renderGlobalSearchInfo();
+      syncGlobalAdvancedUI();
       renderRestorePanel();
       syncFocusTableUI();
     }
@@ -2371,9 +2550,11 @@
     }
 
     function renderRootPath() {
+      const roots = Array.isArray(state.manager.rootPaths) ? state.manager.rootPaths : [];
       const root = state.manager.rootPath || t('common.unknown');
       els.rootPath.textContent = root;
-      els.rootPath.setAttribute('title', root);
+      const tooltip = roots.length > 0 ? roots.join('\n') : root;
+      els.rootPath.setAttribute('title', tooltip);
     }
 
     function renderGlobalSearchInfo() {
@@ -2395,6 +2576,16 @@
         return;
       }
       els.globalSearchInfo.textContent = t('manager.notSearched');
+    }
+
+    function syncGlobalAdvancedUI() {
+      const open = Boolean(state.manager.globalAdvancedOpen);
+      els.globalAdvancedRow.classList.toggle('hidden', !open);
+      els.globalAdvancedToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      els.globalAdvancedToggleBtn.textContent = open
+        ? `${t('btn.hideFilters')} ▲`
+        : `${t('btn.moreFilters')} ▼`;
+      els.globalAdvancedToggleBtn.setAttribute('title', t('manager.tip.moreFilters'));
     }
 
     function syncFocusTableUI() {
@@ -2652,6 +2843,7 @@
       const data = await res.json();
       state.manager.sessions = Array.isArray(data.sessions) ? data.sessions : [];
       state.manager.rootPath = data.root || t('common.unknown');
+      state.manager.rootPaths = Array.isArray(data.roots) ? data.roots : [];
       renderRootPath();
     }
 
@@ -2683,8 +2875,21 @@
       return data;
     }
 
-    async function fetchGlobalSearch(query, includeSubagents = false, limit = 200) {
-      const url = `/api/search-global?q=${encodeURIComponent(query)}&includeSubagents=${includeSubagents ? '1' : '0'}&limit=${limit}`;
+    async function fetchGlobalSearch(query, {
+      includeSubagents = false,
+      limit = 200,
+      project = '',
+      from = '',
+      to = '',
+    } = {}) {
+      const params = new URLSearchParams();
+      params.set('q', query);
+      params.set('includeSubagents', includeSubagents ? '1' : '0');
+      params.set('limit', String(limit));
+      if (project) params.set('project', project);
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+      const url = `/api/search-global?${params.toString()}`;
       const res = await fetch(url, { cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t('common.httpError', { status: res.status }));
@@ -3318,17 +3523,35 @@
         }
       });
 
-      els.globalSearchBtn.addEventListener('click', async () => {
+      const runGlobalSearch = async () => {
         const q = String(els.globalSearchInput.value || '').trim();
         if (!q) {
           window.alert(t('manager.enterSearchKeyword'));
           return;
         }
+        const project = String(els.globalProjectInput.value || '').trim();
+        const fromDate = String(els.globalFromInput.value || '').trim();
+        const toDate = String(els.globalToInput.value || '').trim();
+        if (fromDate && toDate && fromDate > toDate) {
+          window.alert(t('manager.invalidDateRange'));
+          return;
+        }
+        const from = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : '';
+        const to = toDate ? new Date(`${toDate}T23:59:59.999`).toISOString() : '';
+        m.globalProject = project;
+        m.globalFrom = fromDate;
+        m.globalTo = toDate;
         els.globalSearchBtn.disabled = true;
         m.globalSearchStatus = 'loading';
         renderGlobalSearchInfo();
         try {
-          const res = await fetchGlobalSearch(q, Boolean(els.globalSearchSubagentsToggle.checked), 200);
+          const res = await fetchGlobalSearch(q, {
+            includeSubagents: Boolean(els.globalSearchSubagentsToggle.checked),
+            limit: 200,
+            project,
+            from,
+            to,
+          });
           m.globalHits = Array.isArray(res.hits) ? res.hits : [];
           m.globalSearchStatus = 'done';
           m.globalFilterKeys = buildGlobalFilterKeySet();
@@ -3347,14 +3570,35 @@
         } finally {
           els.globalSearchBtn.disabled = false;
         }
+      };
+
+      els.globalSearchBtn.addEventListener('click', runGlobalSearch);
+
+      els.globalSearchInput.addEventListener('keydown', async (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        await runGlobalSearch();
+      });
+
+      els.globalAdvancedToggleBtn.addEventListener('click', () => {
+        m.globalAdvancedOpen = !m.globalAdvancedOpen;
+        syncGlobalAdvancedUI();
       });
 
       els.globalSearchClearBtn.addEventListener('click', () => {
         m.globalHits = [];
         m.globalFilterKeys = null;
         els.globalSearchInput.value = '';
+        els.globalProjectInput.value = '';
+        els.globalFromInput.value = '';
+        els.globalToInput.value = '';
+        m.globalProject = '';
+        m.globalFrom = '';
+        m.globalTo = '';
+        m.globalAdvancedOpen = false;
         m.globalSearchStatus = 'idle';
         m.globalSearchError = '';
+        syncGlobalAdvancedUI();
         renderGlobalSearchInfo();
         renderGlobalSearchResults();
         applyManagerFilterAndRender();

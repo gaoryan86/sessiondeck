@@ -9,17 +9,55 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const CLAUDE_PROJECTS = process.env.CLAUDE_PROJECTS || path.join(os.homedir(), '.claude', 'projects');
+const DEFAULT_SESSION_ROOT = path.join(os.homedir(), '.claude', 'projects');
+const RAW_SESSION_ROOTS = process.env.CLAUDE_PROJECTS || DEFAULT_SESSION_ROOT;
+const SESSION_ROOT_SEPARATOR_RE = /[\n,;]/;
+const SESSION_ROOTS = resolveSessionRoots(RAW_SESSION_ROOTS);
+const PRIMARY_SESSION_ROOT = SESSION_ROOTS[0] || DEFAULT_SESSION_ROOT;
 const PORT = Number(process.env.PORT || 47831);
 const INDEX_HTML_PATH = path.join(__dirname, 'index.html');
 const SESSION_FILE_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i;
 const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COMPACT_NAME_RE = /agent-acompact-/i;
-const CUSTOM_META_PATH = path.join(CLAUDE_PROJECTS, '.session-web-manager.meta.json');
-const DELETION_LOG_PATH = path.join(CLAUDE_PROJECTS, '.sessiondeck-deletion-log.json');
+const CUSTOM_META_PATH = path.join(PRIMARY_SESSION_ROOT, '.session-web-manager.meta.json');
+const DELETION_LOG_PATH = path.join(PRIMARY_SESSION_ROOT, '.sessiondeck-deletion-log.json');
+const FALLBACK_TRASH_DIR = path.join(PRIMARY_SESSION_ROOT, '.sessiondeck-trash');
 const DELETION_LOG_LIMIT = 2000;
 
 const sessionMetaCache = new Map();
+
+function resolveSessionRoots(raw) {
+  const text = String(raw || '').trim();
+  if (!text) {
+    return [DEFAULT_SESSION_ROOT];
+  }
+
+  const parts = text
+    .split(SESSION_ROOT_SEPARATOR_RE)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const roots = (parts.length > 0 ? parts : [text])
+    .map((p) => path.resolve(p))
+    .filter(Boolean);
+
+  return [...new Set(roots)];
+}
+
+function hasAnySessionRoot() {
+  return SESSION_ROOTS.some((root) => fs.existsSync(root));
+}
+
+function isPathUnderAnySessionRoot(target) {
+  return SESSION_ROOTS.some((root) => isPathUnder(root, target));
+}
+
+function sessionRootDisplay() {
+  if (SESSION_ROOTS.length === 1) {
+    return SESSION_ROOTS[0];
+  }
+  return `${SESSION_ROOTS.length} roots`;
+}
 
 function sendJson(res, statusCode, payload) {
   const body = JSON.stringify(payload);
@@ -229,6 +267,7 @@ function listTrashRoots() {
     roots.push(path.join(xdgDataHome, 'Trash', 'files'));
     roots.push(path.join(home, '.Trash'));
   }
+  roots.push(FALLBACK_TRASH_DIR);
   return [...new Set(roots)].filter((p) => fs.existsSync(p));
 }
 
@@ -328,10 +367,20 @@ function updateDeletionLogEntry(logId, updater) {
 }
 
 function listProjectDirs() {
-  if (!fs.existsSync(CLAUDE_PROJECTS)) {
-    return [];
+  const out = [];
+  for (const root of SESSION_ROOTS) {
+    if (!fs.existsSync(root)) {
+      continue;
+    }
+    const dirs = fs.readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory() && !d.name.startsWith('.'));
+    for (const dir of dirs) {
+      out.push({
+        root,
+        name: dir.name,
+      });
+    }
   }
-  return fs.readdirSync(CLAUDE_PROJECTS, { withFileTypes: true }).filter((d) => d.isDirectory());
+  return out;
 }
 
 function safeRelative(root, target) {
@@ -529,8 +578,8 @@ function findSessionMainFiles(sessionId) {
 
   const result = [];
   for (const dir of listProjectDirs()) {
-    const candidate = path.join(CLAUDE_PROJECTS, dir.name, `${sessionId}.jsonl`);
-    if (fs.existsSync(candidate) && isPathUnder(CLAUDE_PROJECTS, candidate)) {
+    const candidate = path.join(dir.root, dir.name, `${sessionId}.jsonl`);
+    if (fs.existsSync(candidate) && isPathUnder(dir.root, candidate)) {
       result.push(candidate);
     }
   }
@@ -799,13 +848,13 @@ function getSessionMeta(filePath) {
 
 function loadIndexEntriesByFullPath() {
   const map = new Map();
-  if (!fs.existsSync(CLAUDE_PROJECTS)) {
+  if (!hasAnySessionRoot()) {
     return map;
   }
 
-  const projectDirs = fs.readdirSync(CLAUDE_PROJECTS, { withFileTypes: true }).filter((d) => d.isDirectory());
+  const projectDirs = listProjectDirs();
   for (const dir of projectDirs) {
-    const indexPath = path.join(CLAUDE_PROJECTS, dir.name, 'sessions-index.json');
+    const indexPath = path.join(dir.root, dir.name, 'sessions-index.json');
     if (!fs.existsSync(indexPath)) {
       continue;
     }
@@ -822,7 +871,7 @@ function loadIndexEntriesByFullPath() {
         continue;
       }
 
-      if (!isPathUnder(CLAUDE_PROJECTS, fullPath)) {
+      if (!isPathUnder(dir.root, fullPath)) {
         continue;
       }
 
@@ -843,7 +892,7 @@ function loadIndexEntriesByFullPath() {
 }
 
 function collectMainSessionFiles(indexByPath = null) {
-  if (!fs.existsSync(CLAUDE_PROJECTS)) {
+  if (!hasAnySessionRoot()) {
     return [];
   }
 
@@ -852,7 +901,7 @@ function collectMainSessionFiles(indexByPath = null) {
   const files = [];
 
   for (const dir of projectDirs) {
-    const projectDir = path.join(CLAUDE_PROJECTS, dir.name);
+    const projectDir = path.join(dir.root, dir.name);
     const entries = fs.readdirSync(projectDir, { withFileTypes: true });
 
     for (const file of entries) {
@@ -861,17 +910,19 @@ function collectMainSessionFiles(indexByPath = null) {
       }
 
       const fullPath = path.join(projectDir, file.name);
-      if (!isPathUnder(CLAUDE_PROJECTS, fullPath)) {
+      if (!isPathUnder(dir.root, fullPath)) {
         continue;
       }
 
       const sessionId = file.name.replace(/\.jsonl$/i, '');
       const indexMeta = indexMap.get(fullPath) || null;
       files.push({
+        sourceRoot: dir.root,
         projectDir,
         fullPath,
         sessionId,
         indexPath: indexMeta?.indexPath || '',
+        projectPath: indexMeta?.projectPath || '',
       });
     }
   }
@@ -914,7 +965,7 @@ function readSessionBranchAndSidechain(filePath) {
 }
 
 function listSessionRecords() {
-  if (!fs.existsSync(CLAUDE_PROJECTS)) {
+  if (!hasAnySessionRoot()) {
     return [];
   }
 
@@ -975,11 +1026,11 @@ function decodeKey(rawKey) {
       return null;
     }
 
-    if (!isPathUnder(CLAUDE_PROJECTS, fullPath)) {
+    if (!isPathUnderAnySessionRoot(fullPath)) {
       return null;
     }
 
-    if (indexPath && !isPathUnder(CLAUDE_PROJECTS, indexPath)) {
+    if (indexPath && !isPathUnderAnySessionRoot(indexPath)) {
       return null;
     }
 
@@ -993,8 +1044,8 @@ function decodeKey(rawKey) {
   }
 }
 
-function ensureTrashCommand() {
-  const probe = spawnSync('which', ['trash'], { encoding: 'utf8' });
+function hasCommand(command) {
+  const probe = spawnSync(process.platform === 'win32' ? 'where' : 'which', [command], { encoding: 'utf8' });
   return probe.status === 0;
 }
 
@@ -1004,23 +1055,103 @@ function parseTrashDestination(output) {
   return match ? normalizeText(match[1]) : '';
 }
 
+function buildFallbackTrashPath(sessionId) {
+  const safeSid = normalizeText(sessionId) || 'session';
+  const rand = Math.random().toString(36).slice(2, 8);
+  return path.join(FALLBACK_TRASH_DIR, `${safeSid}-${Date.now()}-${rand}.jsonl`);
+}
+
+function backupToFallbackTrash(fullPath, sessionId) {
+  fs.mkdirSync(FALLBACK_TRASH_DIR, { recursive: true });
+  const backupPath = buildFallbackTrashPath(sessionId);
+  fs.copyFileSync(fullPath, backupPath);
+  return backupPath;
+}
+
+function moveToFallbackTrash(fullPath, sessionId) {
+  fs.mkdirSync(FALLBACK_TRASH_DIR, { recursive: true });
+  const fallbackPath = buildFallbackTrashPath(sessionId);
+  moveFileAtomic(fullPath, fallbackPath);
+  return fallbackPath;
+}
+
+function moveFileToSystemTrash(fullPath, sessionId) {
+  if (process.platform === 'win32') {
+    let backupPath = '';
+    try {
+      backupPath = backupToFallbackTrash(fullPath, sessionId);
+    } catch {
+      backupPath = '';
+    }
+
+    const escapedPath = fullPath.replace(/'/g, "''");
+    const ps = `$ErrorActionPreference='Stop'; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('${escapedPath}','OnlyErrorDialogs','SendToRecycleBin')`;
+    const result = spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', ps], { encoding: 'utf8' });
+    if (result.status === 0) {
+      return {
+        ok: true,
+        status: 'deleted',
+        reason: backupPath ? 'windows recycle bin + local backup' : 'windows recycle bin',
+        trashPath: backupPath,
+      };
+    }
+
+    try {
+      const fallbackPath = moveToFallbackTrash(fullPath, sessionId);
+      return {
+        ok: true,
+        status: 'deleted',
+        reason: 'fallback local trash',
+        trashPath: fallbackPath,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        status: 'trash_failed',
+        reason: normalizeText(result.stderr || result.stdout || error?.message || 'windows recycle failed'),
+        trashPath: backupPath,
+      };
+    }
+  }
+
+  if (hasCommand('trash')) {
+    const moved = spawnSync('trash', ['-v', fullPath], { encoding: 'utf8' });
+    if (moved.status === 0) {
+      return {
+        ok: true,
+        status: 'deleted',
+        reason: 'system trash',
+        trashPath: parseTrashDestination(moved.stdout),
+      };
+    }
+  }
+
+  try {
+    const fallbackPath = moveToFallbackTrash(fullPath, sessionId);
+    return {
+      ok: true,
+      status: 'deleted',
+      reason: 'fallback local trash',
+      trashPath: fallbackPath,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 'trash_failed',
+      reason: normalizeText(error?.message || '无法移动到回收位置'),
+      trashPath: '',
+    };
+  }
+}
+
 function writeJsonAtomic(filePath, data) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.tmp.${Date.now()}`;
   fs.writeFileSync(tempPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
   fs.renameSync(tempPath, filePath);
 }
 
 function deleteSessions(keys) {
-  if (!ensureTrashCommand()) {
-    return {
-      ok: false,
-      message: '系统未找到 trash 命令，无法安全删除。',
-      deleted: 0,
-      failed: keys.length,
-      details: [],
-    };
-  }
-
   const grouped = new Map();
   const details = [];
   const deletionLogs = [];
@@ -1048,25 +1179,26 @@ function deleteSessions(keys) {
     let reason = '';
     let trashPath = '';
     if (fs.existsSync(meta.fullPath)) {
-      const moved = spawnSync('trash', ['-v', meta.fullPath], { encoding: 'utf8' });
-      if (moved.status !== 0) {
-        reason = moved.stderr || 'trash 失败';
+      const moved = moveFileToSystemTrash(meta.fullPath, meta.sessionId);
+      status = moved.status || 'deleted';
+      reason = moved.reason || '';
+      trashPath = moved.trashPath || '';
+      if (!moved.ok) {
         details.push({ key: rawKey, ok: false, reason });
         deletionLogs.push({
           id: makeLogId(),
           action: 'delete',
-          status: 'trash_failed',
+          status,
           sessionId: meta.sessionId,
           fullPath: meta.fullPath,
           indexPath: meta.indexPath,
           key: rawKey,
           reason,
-          trashPath: '',
+          trashPath,
           deletedAt: nowIso,
         });
         continue;
       }
-      trashPath = parseTrashDestination(moved.stdout);
     } else {
       status = 'missing_file';
       reason = '源文件不存在，仅清理索引';
@@ -1151,7 +1283,7 @@ function upsertSessionIndexEntry(indexPath, sessionId, fullPath) {
   const safeIndexPath = normalizeText(indexPath)
     || path.join(path.dirname(fullPath), 'sessions-index.json');
 
-  if (!isPathUnder(CLAUDE_PROJECTS, safeIndexPath)) {
+  if (!isPathUnderAnySessionRoot(safeIndexPath)) {
     return null;
   }
 
@@ -1218,7 +1350,7 @@ function restoreDeletedSessionByLogId(logId, preferredTrashPath = '') {
   if (!sessionId || !fullPath) {
     return { ok: false, error: '删除日志不完整' };
   }
-  if (!isPathUnder(CLAUDE_PROJECTS, fullPath)) {
+  if (!isPathUnderAnySessionRoot(fullPath)) {
     return { ok: false, error: '目标路径不在会话根目录内，拒绝恢复' };
   }
   if (fs.existsSync(fullPath)) {
@@ -1327,7 +1459,7 @@ function listTrashRecoverable(limit = 300) {
 }
 
 function rebuildSessionIndexes({ dryRun = false } = {}) {
-  if (!fs.existsSync(CLAUDE_PROJECTS)) {
+  if (!hasAnySessionRoot()) {
     return {
       ok: true,
       dryRun,
@@ -1345,7 +1477,7 @@ function rebuildSessionIndexes({ dryRun = false } = {}) {
   const details = [];
 
   for (const dir of projectDirs) {
-    const projectDir = path.join(CLAUDE_PROJECTS, dir.name);
+    const projectDir = path.join(dir.root, dir.name);
     const indexPath = path.join(projectDir, 'sessions-index.json');
     const existing = readJsonSafe(indexPath);
     const existingEntries = Array.isArray(existing?.entries) ? existing.entries : [];
@@ -1416,7 +1548,39 @@ function lineMatchesQuery(text, queryLower) {
   return normalizeText(text).toLowerCase().includes(queryLower);
 }
 
-function globalSearchSessions(query, { limit = 200, includeSubagents = false } = {}) {
+function parseOptionalTimeMs(value) {
+  const raw = normalizeText(value);
+  if (!raw) return null;
+  const ms = parseTimeSafe(raw);
+  return Number.isFinite(ms) ? ms : NaN;
+}
+
+function matchProjectFilter(file, projectQueryLower) {
+  if (!projectQueryLower) return true;
+  const haystack = [
+    normalizeText(file.projectPath),
+    normalizeText(file.projectDir),
+    normalizeText(file.sourceRoot),
+  ].join(' ').toLowerCase();
+  return haystack.includes(projectQueryLower);
+}
+
+function matchTimeRange(tsMs, fromMs, toMs) {
+  if (!Number.isFinite(tsMs)) {
+    return fromMs === null && toMs === null;
+  }
+  if (fromMs !== null && tsMs < fromMs) return false;
+  if (toMs !== null && tsMs > toMs) return false;
+  return true;
+}
+
+function globalSearchSessions(query, {
+  limit = 200,
+  includeSubagents = false,
+  project = '',
+  fromMs = null,
+  toMs = null,
+} = {}) {
   const rawQuery = normalizeText(query);
   const queryLower = rawQuery.toLowerCase();
   if (!rawQuery) {
@@ -1424,13 +1588,16 @@ function globalSearchSessions(query, { limit = 200, includeSubagents = false } =
   }
 
   const cap = Math.max(1, Math.min(1000, Number(limit) || 200));
+  const projectQueryLower = normalizeText(project).toLowerCase();
   const indexByPath = loadIndexEntriesByFullPath();
   const mainFiles = collectMainSessionFiles(indexByPath);
   const hits = [];
-  const sessionById = new Map();
 
   for (const file of mainFiles) {
-    sessionById.set(file.sessionId, file);
+    if (!matchProjectFilter(file, projectQueryLower)) {
+      continue;
+    }
+
     const lines = readJsonLines(file.fullPath);
     for (let i = 0; i < lines.length; i += 1) {
       if (hits.length >= cap) break;
@@ -1455,6 +1622,11 @@ function globalSearchSessions(query, { limit = 200, includeSubagents = false } =
         continue;
       }
 
+      const ts = parseTimeSafe(obj?.timestamp || obj?.message?.timestamp);
+      if (!matchTimeRange(ts, fromMs, toMs)) {
+        continue;
+      }
+
       hits.push({
         sessionId: file.sessionId,
         key: buildSessionKey(file.sessionId, file.fullPath, file.indexPath),
@@ -1473,6 +1645,7 @@ function globalSearchSessions(query, { limit = 200, includeSubagents = false } =
   if (includeSubagents && hits.length < cap) {
     for (const file of mainFiles) {
       if (hits.length >= cap) break;
+      if (!matchProjectFilter(file, projectQueryLower)) continue;
 
       const subagentDir = path.join(path.dirname(file.fullPath), file.sessionId, 'subagents');
       if (!fs.existsSync(subagentDir)) continue;
@@ -1504,6 +1677,11 @@ function globalSearchSessions(query, { limit = 200, includeSubagents = false } =
           }
 
           if (!text || !lineMatchesQuery(text, queryLower)) {
+            continue;
+          }
+
+          const ts = parseTimeSafe(obj?.timestamp || obj?.message?.timestamp);
+          if (!matchTimeRange(ts, fromMs, toMs)) {
             continue;
           }
 
@@ -1656,7 +1834,8 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && pathname === '/api/sessions') {
     const sessions = listSessionRecords();
     sendJson(res, 200, {
-      root: CLAUDE_PROJECTS,
+      root: sessionRootDisplay(),
+      roots: SESSION_ROOTS,
       count: sessions.length,
       sessions,
     });
@@ -1719,15 +1898,34 @@ const server = http.createServer(async (req, res) => {
     const q = normalizeText(reqUrl.searchParams.get('q'));
     const limit = Number(reqUrl.searchParams.get('limit') || 200);
     const includeSubagents = reqUrl.searchParams.get('includeSubagents') === '1';
+    const project = normalizeText(reqUrl.searchParams.get('project'));
+    const fromRaw = normalizeText(reqUrl.searchParams.get('from'));
+    const toRaw = normalizeText(reqUrl.searchParams.get('to'));
+    const fromMs = parseOptionalTimeMs(fromRaw);
+    const toMs = parseOptionalTimeMs(toRaw);
 
     if (!q) {
       sendJson(res, 400, { error: 'q 不能为空' });
       return;
     }
 
-    const hits = globalSearchSessions(q, { limit, includeSubagents });
+    if (Number.isNaN(fromMs) || Number.isNaN(toMs)) {
+      sendJson(res, 400, { error: '时间过滤参数无效，请使用 ISO 或 datetime-local 格式。' });
+      return;
+    }
+
+    const hits = globalSearchSessions(q, {
+      limit,
+      includeSubagents,
+      project,
+      fromMs,
+      toMs,
+    });
     sendJson(res, 200, {
       query: q,
+      project,
+      from: fromRaw || '',
+      to: toRaw || '',
       count: hits.length,
       includeSubagents,
       hits,
@@ -1848,5 +2046,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   process.stdout.write(`SessionDeck running at http://127.0.0.1:${PORT}\n`);
-  process.stdout.write(`Session root: ${CLAUDE_PROJECTS}\n`);
+  process.stdout.write(`Session roots (${SESSION_ROOTS.length}): ${SESSION_ROOTS.join(', ')}\n`);
 });
